@@ -237,14 +237,14 @@
 				if ((k != 'items') && (k != 'content') && (k != 'ordered') && (k != 'itemargs') && (k != 'itemArgs') && (k != 'justItems') && (k != 'justitems'))
 					argObj[k] = args[k]
 			if (!isEmpty(argObj)) {
-				argObj.css = 'display:table;'
+				argObj.css = 'display:table'
 				var table  = this.div(argObj, true)
 			}
 			else
-				var table = {div: [{style: 'display:table;'}]}
-			if (args.row === void 0)
+				var table = {div: [{style: 'display:table'}]}
+			if (args.row !== void 0)
 				args.col = args.row
-			else if (args.col === void 0)
+			else if (args.col !== void 0)
 				args.row = args.col
 			if (args.items) {
 				args.row = args.items.length
@@ -252,7 +252,7 @@
 			}
 
 			for (var i = 0; i<args.row; i++) {
-				var row = {div: [{style: 'display:table-row;'}]}
+				var row = {div: [{style: 'display:table-row'}]}
 				for (var j = 0; j<args.col;j++) {
 					if (args.itemArgs)
 						var o = (args.items) ? listContentTrack(clone(args.itemArgs), args.items[i][j], i, j) : listContentTrack(clone(args.itemArgs), '', i, j)
@@ -262,9 +262,9 @@
 						o.content = (args.items) ? listContentTrack(clone(args.content), args.items[i][j], i, j) : listContentTrack(clone(args.content), '', i, j)
 					
 					if (o.css === void 0) 
-						o.css  = 'display:table-cell;'
+						o.css  = 'display:table-cell'
 					else
-						o.css += 'display:table-cell;'
+						o.css += 'display:table-cell'
 					row.div.push(this.div(o, true))
 				}
 				table.div.push(row)
