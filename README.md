@@ -30,13 +30,14 @@ You pass the selector name in and in the end you can do `.append()`, `.prepend()
 
 HuK (hopefully) supports all the existing HTML elements. That means, to create a `<div>` element, you can:
 
-* .div() - <div></div>
-* .div(String) - <div>String</div>
-* .div({id: 'foo', class: 'bar', content: 'Content'}) - <div id="foo" class="bar">Content</div>
+* .div() - `<div></div>`
+* .div(String) - `<div>String</div>`
+* .div({id: 'foo', class: 'bar', content: 'Content'}) - `<div id="foo" class="bar">Content</div>`
 
 <h4>Events</h4>
 
 The events in [bean](https://github.com/fat/bean) can be written here too.
+
 ``` js
 	HuK('.foo')
 		.div({
