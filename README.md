@@ -1,6 +1,6 @@
 HuK
 -----
-HuK.js is a library for generating HTML code in JavaScript. It is an [Ender.js](https://github.com/ded/Ender.js) module and it uses some basic modules ([bonzo](https://github.com/ded/bonzo), [bean](https://github.com/fat/bean)).
+HuK.js is a library for generating HTML code in JavaScript. It will be an [Ender.js](https://github.com/ded/Ender.js) module and it uses some basic modules ([bonzo](https://github.com/ded/bonzo), [bean](https://github.com/fat/bean)). Or you can simply use it with [jQuery](https://github.com/jquery/jquery).
 
 <h2>Example</h2>
 
