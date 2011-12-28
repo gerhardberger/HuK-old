@@ -95,3 +95,23 @@ This creates a table from `<div>`s, similar to `.list()`. To refer to the two in
 		})
 	.prepend()
 ```
+
+<h3>Nesting</h3>
+
+If you want to nest some content, you have use the `.value()` function in the end, instead of `.html()`, `.append()` etc.
+
+``` js
+	HuK('#foo')
+		.div({
+			content: HuK()
+				.h1('Title1')
+				.h2('Title2')
+				.h3({
+					content: HuK()
+						.span('Title3')
+					.value()
+				})
+			.value()
+		})
+	.text()
+```
