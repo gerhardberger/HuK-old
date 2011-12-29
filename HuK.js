@@ -48,9 +48,12 @@
 			var binding = {
 				path: e.target
 			}
-			if ((e.event == 'hover') || (e.event == 'resize'))
-				eval('$("'+e.target+'").'+e.event+'('+e.fn.bind(null,binding)+')')
-			$(e.target).bind(e.event, e.fn.bind(null,binding))
+			if (e.event == 'hover')
+				$(e.target).hover(e.fn.bind(null,binding))
+			else if (e.event == 'resize')
+				$(e.target).resize(e.fn.bind(null,binding))
+			else
+				$(e.target).bind(e.event, e.fn.bind(null,binding))
 		})
 	}
 
@@ -64,12 +67,9 @@
 				if ((!(elem instanceof Array)) && (key != 'text') && (!isEvent(key))) {
 					if (key == 'css') {
 						result += ' style="'
-						if (typeof elem === 'string')
-							result += elem+';';
-						else
-							each(elem, function(e,k) {
-								result += k+': '+e+';'
-							})
+						each(elem, function(e,k) {
+							result += k+': '+e+';'
+						})
 						result += '"'
 					}
 					else
@@ -237,14 +237,14 @@
 				if ((k != 'items') && (k != 'content') && (k != 'ordered') && (k != 'itemargs') && (k != 'itemArgs') && (k != 'justItems') && (k != 'justitems'))
 					argObj[k] = args[k]
 			if (!isEmpty(argObj)) {
-				argObj.css = 'display:table'
+				argObj.css = 'display:table;'
 				var table  = this.div(argObj, true)
 			}
 			else
-				var table = {div: [{style: 'display:table'}]}
-			if (args.row !== void 0)
+				var table = {div: [{style: 'display:table;'}]}
+			if (args.row === void 0)
 				args.col = args.row
-			else if (args.col !== void 0)
+			else if (args.col === void 0)
 				args.row = args.col
 			if (args.items) {
 				args.row = args.items.length
@@ -252,19 +252,16 @@
 			}
 
 			for (var i = 0; i<args.row; i++) {
-				var row = {div: [{style: 'display:table-row'}]}
+				var row = {div: [{style: 'display:table-row;'}]}
 				for (var j = 0; j<args.col;j++) {
 					if (args.itemArgs)
 						var o = (args.items) ? listContentTrack(clone(args.itemArgs), args.items[i][j], i, j) : listContentTrack(clone(args.itemArgs), '', i, j)
 					else
 						var o = {}
 					if (args.content !== void 0)
-						o.content = (args.items) ? listContentTrack(clone(args.content), args.items[i][j], i, j) : listContentTrack(clone(args.content), '', i, j)
-					
-					if (o.css === void 0) 
-						o.css  = 'display:table-cell'
-					else
-						o.css += 'display:table-cell'
+						args.items ? o.content = listContentTrack(clone(args.content), args.items[i][j], i, j) : o.content = listContentTrack(clone(args.content), '', i, j)
+
+					o.css ? o.css  += 'display:table-cell;' : o.css = 'display:table-cell;'
 					row.div.push(this.div(o, true))
 				}
 				table.div.push(row)
@@ -302,10 +299,42 @@
 			runEvents()
     }
 	}
-	var HuKelementArray = ['a', 'b', 'button', 'center', 'canvas', 'code', 'div', 'em', 'font', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'i', 'iframe', 'img', 'input', 'label', 'li', 'menu', 'meta', 'ol', 'p','script', 'select', 'span', 'strong', 'style', 'table', 'td', 'tr', 'textarea', 'ul']
-	for (name in HuKelementArray) {
-		eval('Protoss.prototype.'+HuKelementArray[name]+' = function(elem,local){if(isNumber(elem)){ var arr = [];	for(var i=0;i<elem;i++)	if (local)arr.push(this.build({name:"'+HuKelementArray[name]+'"}));	else this.val.push(this.build({name:"'+HuKelementArray[name]+'"}));if (local)return arr;	else return this;	}	else if(typeof elem === "string") {this.val.push(this.build({name:"'+HuKelementArray[name]+'", content: elem}));return this;}	else if(elem instanceof Array){var arr = [];for(i in elem)if (local)arr.push(this.build(elem[i]));else this.val.push(this.build(elem[i]));if (local)return arr;	else return this;}else if (elem === void 0) {if (local)return this.build({name:"'+HuKelementArray[name]+'"});else {this.val.push(this.build({name:"'+HuKelementArray[name]+'"}));	return this;}}else{elem.name="'+HuKelementArray[name]+'";	if (local)return this.build(elem);else {this.val.push(this.build(elem));return this;}}}')
-	}
+	var HuKelementArray = ['a', 'b', 'button', 'center', 'canvas', 'code', 'div', 'em', 'font', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'i', 'iframe', 'img', 'input', 'label', 'li', 'menu', 'meta', 'ol', 'p', 'pre','script', 'select', 'span', 'strong', 'style', 'table', 'td', 'tr', 'textarea', 'ul']
+	each(HuKelementArray, function(name) {
+		Protoss.prototype[name] = function(elem,local) {
+			if(isNumber(elem)){ 
+				var arr = []	
+				for(var i=0;i<elem;i++)	
+					if (local)
+						arr.push(this.build({name: name}))
+					else 
+						this.val.push(this.build({name: name}))
+				return (local) ? arr : this
+			}	else if (typeof elem === 'string') {
+				this.val.push(this.build({name:name, content: elem}))
+				return this
+			}	else if (elem instanceof Array){
+				var arr = []
+				for(i in elem)
+					if (local)
+						arr.push(this.build(elem[i]))
+					else 
+						this.val.push(this.build(elem[i]))
+				return (local) ? arr : this
+			}
+			else if (elem === void 0) {
+				if (local) return this.build({name:name})
+				this.val.push(this.build({name:name}))
+				return this
+			}
+			else{
+				elem.name=name
+				if (local) return this.build(elem)
+				this.val.push(this.build(elem))
+				return this
+			}
+		};
+	})
 
 	function HuK(selector) {
 		return (selector) ? new Protoss($(selector)) : new Protoss()
