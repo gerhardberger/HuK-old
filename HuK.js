@@ -10,7 +10,8 @@
 	}
 	var result = '',
 			isText = false,
-			elTree = []
+			listValueArr = [],
+			elTree = [],
 			eventArr = [],
 			events = ['hover', 'blur ', 'change', 'click', 'dblclick', 'focusin', 'focusout', 'keydown', 'keypress', 'keyup', 'mousedown', 'mouseenter', 'mouseleave', 'mouseout', 'mouseover', 'mousemove', 'resize', 'scroll', 'select', 'submit', 'unload'],
 
@@ -20,8 +21,7 @@
 	}
 	function isEvent(k) {
 		var i = 0
-		while ((i<events.length) && (events[i] != k))
-			i++
+		while ((i<events.length) && (events[i] != k))	i++
 		return i < events.length
 	}
 	function isEmpty(a) {
@@ -43,76 +43,63 @@
 	function isFunction(a) {
 		return! (!a || !a.constructor || !a.call || !a.apply)
 	}
+	function isUndefined(a) {
+		return (a === void 0)
+	}
+	function isArray(a) {
+		return (a instanceof Array)
+	}
+	function isObject(a) {
+		return (a instanceof Object)
+	}
+	function isString(a) {
+		return (typeof a === 'string')
+	}
 	function runEvents() {
 		each(eventArr, function(e) {
 			var binding = {
-				path: e.target
+				path: e.target,
+				val: (e.val) ? e.val.val : null,
+				index: (e.val) ? e.val.i: null
 			}
 			if (e.event == 'hover')
-				$(e.target).hover(e.fn.bind(null,binding))
+				$(e.target).hover(e.fn.bind(binding))
 			else if (e.event == 'resize')
-				$(e.target).resize(e.fn.bind(null,binding))
+				$(e.target).resize(e.fn.bind(binding))
 			else
-				$(e.target).bind(e.event, e.fn.bind(null,binding))
+				$(e.target).bind(e.event, e.fn.bind(binding))
 		})
 	}
 
 	function parse(obj) {
-		if (isEmpty(obj))
-			result += '>'
-		for (k in obj) {
-			var element = obj[k]
-			var eventObj = {}
-			each(element, function(elem, key) {
-				if ((!(elem instanceof Array)) && (key != 'text') && (!isEvent(key))) {
-					if (key == 'css') {
-						result += ' style="'
-						each(elem, function(e,k) {
-							result += k+': '+e+';'
-						})
-						result += '"'
+		if (isArray(obj))
+			each(obj, function(e) {
+				parse(e)
+			})
+		else if (!isUndefined(obj.name)) {
+			elTree.push((obj.id) ? '#'+obj.id : ((obj.class) ? '.'+obj.class : obj.name))
+			result += '<'+obj.name
+			for (i in obj)
+				if (isEvent(i)) {
+					var eventObj = {
+						event: i,
+						fn: obj[i],
+						target: elTree.join(' '),
 					}
-					else
-						result += ' '+key+'="'+elem+'"'
-
-					if (key == 'text')
-						eventObj['content'] = elem
-				}
-			})
-			if ((!isEmpty(result)) && (result[result.length-1] != '>') && (!isText))
-				result += '>'
-			isText = false
-			each(element, function(elem, key) {
-				if (element.id) {
-					elTree.splice(elTree.length-1,1)
-					elTree.push('#'+element.id)
-				}
-				else if (element.class) {
-					elTree.splice(elTree.length-1,1)
-					elTree.push('.'+element.class)
-				}					
-					
-				if (isEvent(key)) {
-					eventObj['event'] = key
-					eventObj['target'] = elTree.join(' ')
-					eventObj['fn'] = element[key]
-				
+					if (!isUndefined(obj.listValueIndex)) {
+						eventObj['val'] = listValueArr[obj.listValueIndex]
+					}
 					eventArr.push(eventObj)
-				}
-				else
-				if (elem instanceof Array) {
-					elTree.push(key)
-					result += '<'+key
-					parse(elem)
-					result += '</'+key+'>'
-					elTree.splice(elTree.length-1,1)
-				}
-				else if (key == 'text') {
-					isText = true
-					result += elem
-				}
-			})
+				} else if ((i != 'name') && (i != 'content') && (i != 'listValueIndex'))
+					result += ' '+i+'="'+obj[i]+'"'
+			result += '>'
+			if (!isUndefined(obj.content))
+				parse(obj.content)
+			result += '</'+obj.name+'>'
+			elTree.splice(elTree.length-1,1)
 		}
+		else if (isString(obj))
+			result += obj
 	}
 	function listContentTrack(cont, value, index, index2) {
 		if (typeof cont === 'string') {			
@@ -123,8 +110,11 @@
 			return cont
 		}
 		else if ((cont instanceof Array) || (cont instanceof Object)) {
-			for (k in cont)
+			for (k in cont) {
+				if (isEvent(k))
+					cont['listValueIndex'] = listValueArr.length-1
 				cont[k] = listContentTrack(cont[k], value, index, index2)
+			}
 			return cont
 		}
 		else if (cont !== void 0)
@@ -162,70 +152,29 @@
 			parse(obj)
 			return result
 		},
-		build: function(elem) {
-			var obj = {}
-			obj[elem.name] = []
-
-			var args = {};
-			each(elem, function(e, k) {
-				if ((k != 'name') && (!(e instanceof Array)) && (k != 'text')&& (k != 'content'))
-					args[k] = e	
-			})
-			if (!isEmpty(args))
-				obj[elem.name].push(args)
-
-			if (elem.content !== void 0) {
-				if (elem.content instanceof Array)
-					each(elem.content, function(insideElement) {
-						if (typeof insideElement === 'string') {
-							var keyName = 'text'
-							var tmp = {}
-							tmp[keyName] = insideElement
-							obj[elem.name].push(tmp)
-						}
-						else
-							obj[elem.name].push(insideElement)
-					})
-				else {
-					if (typeof elem.content === 'string') {
-						var keyName = 'text',
-								tmp = {}
-						tmp[keyName] = elem.content
-						obj[elem.name].push(tmp)
-					}
-					else
-						obj[elem.name].push(elem.content)
-				}
-			}
-			return obj
-		},
 		list: function(args) {
 			var argObj = {}
 			for (k in args)
 				if ((k != 'items') && (k != 'content') && (k != 'ordered') && (k != 'itemargs') && (k != 'itemArgs') && (k != 'justItems') && (k != 'justitems'))
 					argObj[k] = args[k]
-			var result = (!isEmpty(argObj)) ? this.ul(argObj, true) : {ul: []},
+			var result = (!isEmpty(argObj)) ? this.ul(argObj, true) : {name: 'ul', content: []},
 				ordered = ((args.ordered !== void 0) && (args.ordered)),
 				justItems = (((args.justItems !== void 0) && (args.justItems)) || ((args.justitems !== void 0) && (args.justitems)))
-			
 			if (isNumber(args.items))
 				result.ul = this.li(args.items, true)
 			else if (args.items instanceof Array) {
 				for (var i = 0; i < args.items.length; i++) {
-					if (args.itemArgs) {
-
-						var o = listContentTrack(clone(args.itemArgs), args.items[i], i)
-					}
-					else
-						var o = {}
+					listValueArr.push({val: args.items[i], i: i})
+					var o = (args.itemArgs) ? listContentTrack(clone(args.itemArgs), args.items[i], i) : {}
 					if (args.content !== void 0)
 						o.content = listContentTrack(clone(args.content), args.items[i], i)
-					result.ul.push(this.li(o, true))
+					o.listValueIndex = listValueArr.length-1
+					result.content.push(this.li(o, true))
 				}
 			}
 			if (justItems) {
-				for (k in result.ul)
-					this.val.push(result.ul[k])
+				for (k in result.content)
+					this.val.push(result.content[k])
 			}
 			else
 				this.val.push(result)
@@ -237,11 +186,12 @@
 				if ((k != 'items') && (k != 'content') && (k != 'ordered') && (k != 'itemargs') && (k != 'itemArgs') && (k != 'justItems') && (k != 'justitems'))
 					argObj[k] = args[k]
 			if (!isEmpty(argObj)) {
-				argObj.css = 'display:table;'
+				argObj.style = 'display:table;'
 				var table  = this.div(argObj, true)
+				table.content = []
 			}
 			else
-				var table = {div: [{style: 'display:table;'}]}
+				var table = {name: 'div', style: 'display:table;', content: []}
 			if (args.row === void 0)
 				args.col = args.row
 			else if (args.col === void 0)
@@ -250,9 +200,8 @@
 				args.row = args.items.length
 				args.col = (args.items[0].length !== void 0) ?  args.items[0].length : 1
 			}
-
 			for (var i = 0; i<args.row; i++) {
-				var row = {div: [{style: 'display:table-row;'}]}
+				var row = {name: 'div', style: 'display:table-row;', content: []}
 				for (var j = 0; j<args.col;j++) {
 					if (args.itemArgs)
 						var o = (args.items) ? listContentTrack(clone(args.itemArgs), args.items[i][j], i, j) : listContentTrack(clone(args.itemArgs), '', i, j)
@@ -261,10 +210,10 @@
 					if (args.content !== void 0)
 						args.items ? o.content = listContentTrack(clone(args.content), args.items[i][j], i, j) : o.content = listContentTrack(clone(args.content), '', i, j)
 
-					o.css ? o.css  += 'display:table-cell;' : o.css = 'display:table-cell;'
-					row.div.push(this.div(o, true))
+					o.style ? o.style  += 'display:table-cell;' : o.style = 'display:table-cell;'
+					row.content.push(this.div(o, true))
 				}
-				table.div.push(row)
+				table.content.push(row)
 			}
 			this.val.push(table)
 			return this
@@ -306,31 +255,31 @@
 				var arr = []	
 				for(var i=0;i<elem;i++)	
 					if (local)
-						arr.push(this.build({name: name}))
+						arr.push({name: name})
 					else 
-						this.val.push(this.build({name: name}))
+						this.val.push({name: name})
 				return (local) ? arr : this
 			}	else if (typeof elem === 'string') {
-				this.val.push(this.build({name:name, content: elem}))
+				this.val.push({name:name, content: elem})
 				return this
 			}	else if (elem instanceof Array){
 				var arr = []
 				for(i in elem)
 					if (local)
-						arr.push(this.build(elem[i]))
+						arr.push(elem[i])
 					else 
-						this.val.push(this.build(elem[i]))
+						this.val.push(elem[i])
 				return (local) ? arr : this
 			}
-			else if (elem === void 0) {
-				if (local) return this.build({name:name})
-				this.val.push(this.build({name:name}))
+			else if (isUndefined(elem)) {
+				if (local) return {name:name}
+				this.val.push({name:name})
 				return this
 			}
-			else{
+			else {
 				elem.name=name
-				if (local) return this.build(elem)
-				this.val.push(this.build(elem))
+				if (local) return elem
+				this.val.push(elem)
 				return this
 			}
 		};
