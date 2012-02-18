@@ -92,7 +92,7 @@ You can access the current value, index of the list and the path in the <i>this<
 	.text()
 ```
 
-<h2>.Table()</h2>
+<h3>.Table()</h3>
 
 This creates a table from `<div>`s, similar to `.list()`. To refer to the two indexes, use `<<index>>`, `<<index2>>`.
 
