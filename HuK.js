@@ -13,16 +13,39 @@
 			listValueArr = [],
 			elTree = [],
 			eventArr = [],
-			events = ['hover', 'blur ', 'change', 'click', 'dblclick', 'focusin', 'focusout', 'keydown', 'keypress', 'keyup', 'mousedown', 'mouseenter', 'mouseleave', 'mouseout', 'mouseover', 'mousemove', 'resize', 'scroll', 'select', 'submit', 'unload'],
+			events = ['hover', 'blur ', 'change', 'click', 'dblclick', 'focusin', 'focusout', 'keydown'
+				, 'keypress', 'keyup', 'mousedown', 'mouseenter', 'mouseleave', 'mouseout', 'mouseover'
+				, 'mousemove', 'resize', 'scroll', 'select', 'submit', 'unload'],
+			bootstrapArr = ['modal', 'dropdown', 'scrollspy', 'tab', 'tooltip', 'popover'
+				, 'alert', 'button', 'collapse', 'carousel', 'typeahead'],
+			bootArr = [],
+			HuKelementArray = ['a', 'b', 'button', 'center', 'canvas', 'code', 'div', 'em', 'fieldset'
+				, 'font', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'i', 'iframe', 'img', 'input'
+				, 'label', 'li', 'menu', 'meta', 'ol', 'p', 'pre','script', 'select', 'span'
+				, 'strong', 'style', 'table', 'tbody', 'td', 'tr', 'textarea', 'ul', 'abbr'
+				, 'address','caption'],
+			elseArr = ['name', 'content', 'listValueIndex', 'data'],
+			specialListArg = ['items', 'content', 'ordered', 'itemargs', 'itemArgs', 'justItems', 'justitems']
 
 	each = function(a, b) {
-		for (var i in a)
-			b.call(a[i], a[i], (isNaN(parseInt(i)) ? i : parseInt(i)))
+		if ((!isArray(a)) || (!isObject(a)))
+			b.call(a,a)
+		else
+			for (var i in a)
+				b.call(a[i], a[i], (isNaN(parseInt(i)) ? i : parseInt(i)))
+	}
+	isElem = function(arr,k) {
+		var i = 0
+		while ((i<arr.length) && (arr[i] != k))	i++
+		return i < arr.length
+	}
+
+
+	function isBootstrap(k) {
+		return isElem(bootstrapArr,k)
 	}
 	function isEvent(k) {
-		var i = 0
-		while ((i<events.length) && (events[i] != k))	i++
-		return i < events.length
+		return isElem(events,k)
 	}
 	function isEmpty(a) {
 		if (a instanceof Array || typeof a === 'string')
@@ -55,19 +78,32 @@
 	function isString(a) {
 		return (typeof a === 'string')
 	}
+	function notElse(k) {
+		return !isElem(elseArr,k)
+	}
 	function runEvents() {
 		each(eventArr, function(e) {
 			var binding = {
 				path: e.target,
-				val: (e.val) ? e.val.val : null,
-				index: (e.val) ? e.val.i: null
+				data: (e.val) ? e.val.val : null,
+				index: (e.val) ? ((e.val.i) ? e.val.i : 0) : null
 			}
 			if (e.event == 'hover')
-				$(e.target).hover(e.fn.bind(binding))
+				$(e.target).hover(e.fn.bind(binding,binding))
 			else if (e.event == 'resize')
-				$(e.target).resize(e.fn.bind(binding))
+				$(e.target).resize(e.fn.bind(binding,binding))
 			else
-				$(e.target).bind(e.event, e.fn.bind(binding))
+				$(e.target).bind(e.event, e.fn.bind(binding,binding))
+		})
+	}
+	function runBootstrap() {
+		if (isEmpty(bootArr)) return
+
+		each(bootArr, function(e) {
+			if (e.val == true)
+				$(e.target)[e.fn].call($(e.target))
+			else
+				$(e.target)[e.fn].call($(e.target), e.val)
 		})
 	}
 
@@ -86,11 +122,22 @@
 						fn: obj[i],
 						target: elTree.join(' '),
 					}
-					if (!isUndefined(obj.listValueIndex)) {
+					if (!isUndefined(obj.listValueIndex))
 						eventObj['val'] = listValueArr[obj.listValueIndex]
-					}
+					else if (obj.hasOwnProperty('data'))
+						eventObj['val'] = {
+							path: eventObj.target,
+							val: obj.data
+						}
 					eventArr.push(eventObj)
-				} else if ((i != 'name') && (i != 'content') && (i != 'listValueIndex'))
+				} else if (isBootstrap(i)) {
+					var bootObj = {
+						fn: i,
+						val: obj[i],
+						target: elTree.join(' '),
+					}
+					bootArr.push(bootObj)
+				}	else if (notElse(i))
 					result += ' '+i+'="'+obj[i]+'"'
 			result += '>'
 			if (!isUndefined(obj.content))
@@ -147,6 +194,7 @@
 		norris: function(args) {
 			elTree = []
 			eventArr = []
+			bootArr = []
 			result = ''
 			var obj = this.val
 			parse(obj)
@@ -155,11 +203,12 @@
 		list: function(args) {
 			var argObj = {}
 			for (k in args)
-				if ((k != 'items') && (k != 'content') && (k != 'ordered') && (k != 'itemargs') && (k != 'itemArgs') && (k != 'justItems') && (k != 'justitems'))
+				if (!isElem(specialListArg, k))
 					argObj[k] = args[k]
-			var result = (!isEmpty(argObj)) ? this.ul(argObj, true) : {name: 'ul', content: []},
+			var result = (!isEmpty(argObj)) ? this.ul(argObj, true) : {name: 'ul'},
 				ordered = ((args.ordered !== void 0) && (args.ordered)),
 				justItems = (((args.justItems !== void 0) && (args.justItems)) || ((args.justitems !== void 0) && (args.justitems)))
+			result.content = []	
 			if (isNumber(args.items))
 				result.ul = this.li(args.items, true)
 			else if (args.items instanceof Array) {
@@ -183,7 +232,7 @@
 		Table: function(args) {
 			var argObj = {}
 			for (k in args)
-				if ((k != 'items') && (k != 'content') && (k != 'ordered') && (k != 'itemargs') && (k != 'itemArgs') && (k != 'justItems') && (k != 'justitems'))
+				if (!isElem(specialListArg, k))
 					argObj[k] = args[k]
 			if (!isEmpty(argObj)) {
 				argObj.style = 'display:table;'
@@ -226,39 +275,47 @@
 		html: function () {
 			this.selector.html(this.norris())
 			runEvents()
+			runBootstrap()
     },
     text: function () {
 			this.selector.html(this.norris())
 			runEvents()
+			runBootstrap()
     },
 		append: function () {
 			this.selector.append(this.norris())
 			runEvents()
+			runBootstrap()
     },
     before: function () {
 			this.selector.before(this.norris())
 			runEvents()
+			runBootstrap()
     },
 		after: function () {
 			this.selector.after(this.norris())
 			runEvents()
+			runBootstrap()
     },
     prepend: function () {
 			this.selector.prepend(this.norris())
 			runEvents()
+			runBootstrap()
     }
 	}
-	var HuKelementArray = ['a', 'b', 'button', 'center', 'canvas', 'code', 'div', 'em', 'font', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'i', 'iframe', 'img', 'input', 'label', 'li', 'menu', 'meta', 'ol', 'p', 'pre','script', 'select', 'span', 'strong', 'style', 'table', 'td', 'tr', 'textarea', 'ul']
-	each(HuKelementArray, function(name) {
+	HuK = function(selector) {
+		return (selector) ? new Protoss($(selector)) : new Protoss()
+	}
+
+	HuK.__proto__['addTag'] = function(name) {
 		Protoss.prototype[name] = function(elem,local) {
 			if(isNumber(elem)){ 
 				var arr = []	
 				for(var i=0;i<elem;i++)	
-					if (local)
-						arr.push({name: name})
+					if (local) arr.push({name: name})
 					else 
 						this.val.push({name: name})
-				return (local) ? arr : this
+					return (local) ? arr : this
 			}	else if (typeof elem === 'string') {
 				this.val.push({name:name, content: elem})
 				return this
@@ -280,13 +337,16 @@
 				elem.name=name
 				if (local) return elem
 				this.val.push(elem)
-				return this
+			return this
 			}
 		};
-	})
-
-	function HuK(selector) {
-		return (selector) ? new Protoss($(selector)) : new Protoss()
 	}
+
+	each(HuKelementArray, function(name) {
+		HuK.addTag(name)
+		HuK.__proto__[name] = function(elem) {
+			return HuK()[name](elem).value()
+		};
+	})
 	return HuK
 })
