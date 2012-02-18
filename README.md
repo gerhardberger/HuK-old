@@ -92,7 +92,7 @@ You can access the current value, index of the list and the path in the <i>this<
 	.text()
 ```
 
-<h3>.Table()</h3>
+<h2>.Table()</h2>
 
 This creates a table from `<div>`s, similar to `.list()`. To refer to the two indexes, use `<<index>>`, `<<index2>>`.
 
@@ -175,4 +175,4 @@ HuK.js supports [Twitter Bootstrap](http://twitter.github.com/bootstrap), but yo
 	.html()
 ```
 
-Note: If you call the Bootstrap function empty, set it <i>true</i> (e.g. {tooltip: true}).
+Note: If you call the Bootstrap function empty, set it true (e.g. {tooltip: true}).
