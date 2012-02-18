@@ -176,3 +176,11 @@ HuK.js supports [Twitter Bootstrap](http://twitter.github.com/bootstrap), but yo
 ```
 
 Note: If you call the Bootstrap function empty, set it true (e.g. {tooltip: true}).
+
+<h2>.addTag</h2>
+
+You can add new HTML tags to HuK.js:
+
+``` js
+	HuK.addTag('newtag')
+```
