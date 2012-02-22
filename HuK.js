@@ -1,3 +1,22 @@
+if (!Function.prototype.bind) {  
+  Function.prototype.bind = function (oThis) {  
+    if (typeof this !== "function") {
+      throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");  
+    }
+    var aArgs = Array.prototype.slice.call(arguments, 1),   
+        fToBind = this,   
+        fNOP = function () {},  
+        fBound = function () {  
+          return fToBind.apply(this instanceof fNOP  
+                                 ? this  
+                                 : oThis || window,  
+                               aArgs.concat(Array.prototype.slice.call(arguments)));  
+        };  
+    fNOP.prototype = this.prototype;  
+    fBound.prototype = new fNOP();   
+    return fBound;  
+  };  
+}
 !function (name, definition) {
 	if (typeof module != 'undefined') module.exports = definition()
 	else if (typeof define == 'function' && define.amd) define(name, definition)
@@ -98,7 +117,6 @@
 	}
 	function runBootstrap() {
 		if (isEmpty(bootArr)) return
-
 		each(bootArr, function(e) {
 			if (e.val == true)
 				$(e.target)[e.fn].call($(e.target))
@@ -160,7 +178,8 @@
 			for (k in cont) {
 				if (isEvent(k))
 					cont['listValueIndex'] = listValueArr.length-1
-				cont[k] = listContentTrack(cont[k], value, index, index2)
+				else
+					cont[k] = listContentTrack(cont[k], value, index, index2)
 			}
 			return cont
 		}
@@ -307,7 +326,7 @@
 		return (selector) ? new Protoss($(selector)) : new Protoss()
 	}
 
-	HuK.__proto__['addTag'] = function(name) {
+	HuK.constructor.prototype['addTag'] = function(name) {
 		Protoss.prototype[name] = function(elem,local) {
 			if(isNumber(elem)){ 
 				var arr = []	
@@ -344,7 +363,7 @@
 
 	each(HuKelementArray, function(name) {
 		HuK.addTag(name)
-		HuK.__proto__[name] = function(elem) {
+		HuK.constructor.prototype[name] = function(elem) {
 			return HuK()[name](elem).value()
 		};
 	})
