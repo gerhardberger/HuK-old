@@ -20,6 +20,9 @@ if (!Function.prototype.bind) {
 	else if (typeof define == 'function' && define.amd) define(name, definition)
 	else this[name] = definition()
 }('HuK', function() {
+
+	'use strict'
+
 	function Protoss(selector) {
 		this.length = 1
 		this.val = []
@@ -36,7 +39,7 @@ if (!Function.prototype.bind) {
 		, bootstrapArr = ['modal', 'dropdown', 'scrollspy', 'tab', 'tooltip', 'popover'
 				, 'alert', 'button', 'collapse', 'carousel', 'typeahead']
 		, bootArr = []
-			HuKelementArray = ['a', 'area', 'article', 'adress', 'abbr', 'audio', 'b', 'button', 'base', 'bdi', 'bdo', 'center'
+		,	HuKelementArray = ['a', 'area', 'article', 'adress', 'abbr', 'audio', 'b', 'button', 'base', 'bdi', 'bdo', 'center'
 				, 'blockquote', 'cite', 'col', 'colgroup', 'command', 'datalist', 'details', 'dl', 'figure', 'footer', 'header'
 				, 'hgroup', 'map', 'keygen', 'kbd', 'map', 'mark', 'meter', 'nav', 'noscript', 'object', 'param', 'output', 'progress'
 				, 'rp', 'rt', 'ruby', 'section', 'source', 'summary', 'sub', 'time', 'tfoot', 'sup', 'track', 'video', 'wbr', 'figcaption'
@@ -124,7 +127,7 @@ if (!Function.prototype.bind) {
 		else if (!isUndefined(obj.name)) {
 			elTree.push((obj.id) ? '#'+obj.id : ((obj.class) ? '.'+obj.class.split(' ')[0] : obj.name))
 			result += '<'+obj.name
-			for (i in obj)
+			for (var i in obj)
 				if (isEvent(i)) {
 					var eventObj = {
 						event: i,
@@ -162,7 +165,7 @@ if (!Function.prototype.bind) {
 			return cont
 		}
 		else if ((cont instanceof Array) || (cont instanceof Object)) {
-			for (k in cont)
+			for (var k in cont)
 				isEvent(k) ? cont['listValueIndex'] = listValueArr.length-1 : cont[k] = listContentTrack(cont[k], value, index, index2)
 			return cont
 		}
@@ -204,7 +207,7 @@ if (!Function.prototype.bind) {
 		list: function(args) {
 			var argObj = {}
 				, itemTag = (args.itemTag) ? args.itemTag : 'li'
-			for (k in args)
+			for (var k in args)
 				if (!isElem(specialListArg, k))	argObj[k] = args[k]
 
 			var result = (!isEmpty(argObj)) ? this.ul(argObj, true) : {name: 'ul'},
@@ -303,7 +306,9 @@ if (!Function.prototype.bind) {
 			runBootstrap()
     }
 	}
-	HuK = function(selector) {
+
+
+	function HuK(selector) {
 		return selector ? new Protoss($(selector)) : new Protoss()
 	}
 
