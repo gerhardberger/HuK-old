@@ -158,7 +158,7 @@ But if you do not chain functions when nesting, you can also write the nested el
 		})
 ```
 
-<h2>Bootstrap supports</h2>
+<h2>Working with Twitter Bootstrap</h2>
 
 HuK.js supports [Twitter Bootstrap](http://twitter.github.com/bootstrap), but you have to download the jQuery plugin yourself, it is not included. So you can write the following code:
 
