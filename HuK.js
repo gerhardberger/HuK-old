@@ -1,8 +1,6 @@
 if (!Function.prototype.bind) {  
   Function.prototype.bind = function (oThis) {  
-    if (typeof this !== "function") {
-      throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");  
-    }
+    if (typeof this !== "function") { throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable"); }
     var aArgs = Array.prototype.slice.call(arguments, 1),   
         fToBind = this,   
         fNOP = function () {},  
@@ -27,39 +25,43 @@ if (!Function.prototype.bind) {
 		this.val = []
 		this.selector = selector
 	}
-	var result = '',
-			isText = false,
-			listValueArr = [],
-			elTree = [],
-			eventArr = [],
-			events = ['hover', 'blur ', 'change', 'click', 'dblclick', 'focusin', 'focusout', 'keydown'
+	var result = ''
+		, isText = false
+		, listValueArr = []
+		, elTree = []
+		, eventArr = []
+		, events = ['hover', 'blur ', 'change', 'click', 'dblclick', 'focusin', 'focusout', 'keydown'
 				, 'keypress', 'keyup', 'mousedown', 'mouseenter', 'mouseleave', 'mouseout', 'mouseover'
-				, 'mousemove', 'resize', 'scroll', 'select', 'submit', 'unload'],
-			bootstrapArr = ['modal', 'dropdown', 'scrollspy', 'tab', 'tooltip', 'popover'
-				, 'alert', 'button', 'collapse', 'carousel', 'typeahead'],
-			bootArr = [],
-			HuKelementArray = ['a', 'b', 'button', 'center', 'canvas', 'code', 'div', 'em', 'fieldset'
-				, 'font', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'i', 'iframe', 'img', 'input'
-				, 'label', 'li', 'menu', 'meta', 'ol', 'p', 'pre','script', 'select', 'span'
-				, 'strong', 'style', 'table', 'tbody', 'td', 'tr', 'textarea', 'ul', 'abbr'
-				, 'address','caption'],
-			elseArr = ['name', 'content', 'listValueIndex', 'data'],
-			specialListArg = ['items', 'content', 'ordered', 'itemargs', 'itemArgs', 'justItems', 'justitems']
+				, 'mousemove', 'resize', 'scroll', 'select', 'submit', 'unload', 'complete']
+		, bootstrapArr = ['modal', 'dropdown', 'scrollspy', 'tab', 'tooltip', 'popover'
+				, 'alert', 'button', 'collapse', 'carousel', 'typeahead']
+		, bootArr = []
+			HuKelementArray = ['a', 'area', 'article', 'adress', 'abbr', 'audio', 'b', 'button', 'base', 'bdi', 'bdo', 'center'
+				, 'blockquote', 'cite', 'col', 'colgroup', 'command', 'datalist', 'details', 'dl', 'figure', 'footer', 'header'
+				, 'hgroup', 'map', 'keygen', 'kbd', 'map', 'mark', 'meter', 'nav', 'noscript', 'object', 'param', 'output', 'progress'
+				, 'rp', 'rt', 'ruby', 'section', 'source', 'summary', 'sub', 'time', 'tfoot', 'sup', 'track', 'video', 'wbr', 'figcaption'
+				, 'caption', 'canvas', 'code', 'div', 'dt', 'dd', 'em', 'fieldset', 'font', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'
+				, 'i', 'iframe', 'img', 'input', 'label', 'li', 'menu', 'meta', 'ol', 'p', 'pre','script', 'select', 'span'
+				, 'strong', 'style', 'table', 'tbody', 'td', 'tr', 'textarea', 'ul', 'hr']
+		, elseArr = ['name', 'content', 'listValueIndex', 'data']
+		, specialListArg = ['items', 'content', 'ordered', 'itemargs', 'itemArgs', 'justItems', 'justitems']
+		, shortTags = ['input', 'img', 'br', 'col', 'hr', 'link', 'meta', 'param', 'source']
 
-	each = function(a, b) {
-		if ((!isArray(a)) || (!isObject(a)))
-			b.call(a,a)
+
+	function each(a, b) {
+		if ((!isArray(a)) || (!isObject(a))) b.call(a,a)
 		else
 			for (var i in a)
 				b.call(a[i], a[i], (isNaN(parseInt(i)) ? i : parseInt(i)))
 	}
-	isElem = function(arr,k) {
+	function isElem(arr,k) {
 		var i = 0
 		while ((i<arr.length) && (arr[i] != k))	i++
 		return i < arr.length
 	}
-
-
+	function notElse(k) {
+		return !isElem(elseArr,k)
+	}
 	function isBootstrap(k) {
 		return isElem(bootstrapArr,k)
 	}
@@ -97,9 +99,6 @@ if (!Function.prototype.bind) {
 	function isString(a) {
 		return (typeof a === 'string')
 	}
-	function notElse(k) {
-		return !isElem(elseArr,k)
-	}
 	function runEvents() {
 		each(eventArr, function(e) {
 			var binding = {
@@ -107,21 +106,13 @@ if (!Function.prototype.bind) {
 				data: (e.val) ? e.val.val : null,
 				index: (e.val) ? ((e.val.i) ? e.val.i : 0) : null
 			}
-			if (e.event == 'hover')
-				$(e.target).hover(e.fn.bind(binding,binding))
-			else if (e.event == 'resize')
-				$(e.target).resize(e.fn.bind(binding,binding))
-			else
-				$(e.target).bind(e.event, e.fn.bind(binding,binding))
+			e.event == 'complete' ?	e.fn.call(binding,binding) : $(e.target)[e.event](e.fn.bind(binding,binding))
 		})
 	}
 	function runBootstrap() {
 		if (isEmpty(bootArr)) return
 		each(bootArr, function(e) {
-			if (e.val == true)
-				$(e.target)[e.fn].call($(e.target))
-			else
-				$(e.target)[e.fn].call($(e.target), e.val)
+			e.val == true ? $(e.target)[e.fn].call($(e.target)) :	$(e.target)[e.fn].call($(e.target), e.val)
 		})
 	}
 
@@ -131,7 +122,7 @@ if (!Function.prototype.bind) {
 				parse(e)
 			})
 		else if (!isUndefined(obj.name)) {
-			elTree.push((obj.id) ? '#'+obj.id : ((obj.class) ? '.'+obj.class : obj.name))
+			elTree.push((obj.id) ? '#'+obj.id : ((obj.class) ? '.'+obj.class.split(' ')[0] : obj.name))
 			result += '<'+obj.name
 			for (i in obj)
 				if (isEvent(i)) {
@@ -140,8 +131,7 @@ if (!Function.prototype.bind) {
 						fn: obj[i],
 						target: elTree.join(' '),
 					}
-					if (!isUndefined(obj.listValueIndex))
-						eventObj['val'] = listValueArr[obj.listValueIndex]
+					if (!isUndefined(obj.listValueIndex))	eventObj['val'] = listValueArr[obj.listValueIndex]
 					else if (obj.hasOwnProperty('data'))
 						eventObj['val'] = {
 							path: eventObj.target,
@@ -158,33 +148,25 @@ if (!Function.prototype.bind) {
 				}	else if (notElse(i))
 					result += ' '+i+'="'+obj[i]+'"'
 			result += '>'
-			if (!isUndefined(obj.content))
-				parse(obj.content)
+			if (!isUndefined(obj.content)) parse(obj.content)
 			result += '</'+obj.name+'>'
 			elTree.splice(elTree.length-1,1)
 		}
-		else if (isString(obj))
-			result += obj
+		else if (isString(obj))	result += obj
 	}
 	function listContentTrack(cont, value, index, index2) {
 		if (typeof cont === 'string') {			
 			var arr = cont.match(/<<.[^ ,>>,<<]*>>/gi)
-			each(arr, function(e) {
-				eval('cont = cont.replace(/<<.[^ ,>>,<<]*>>/i, '+e.substr(2,(e.length-4))+')')
-			})
+			if (!isEmpty(arr))
+				each(arr, function(e) {	eval('cont = cont.replace(/<<.[^ ,>>,<<]*>>/i, '+e.substr(2,(e.length-4))+')') })
 			return cont
 		}
 		else if ((cont instanceof Array) || (cont instanceof Object)) {
-			for (k in cont) {
-				if (isEvent(k))
-					cont['listValueIndex'] = listValueArr.length-1
-				else
-					cont[k] = listContentTrack(cont[k], value, index, index2)
-			}
+			for (k in cont)
+				isEvent(k) ? cont['listValueIndex'] = listValueArr.length-1 : cont[k] = listContentTrack(cont[k], value, index, index2)
 			return cont
 		}
-		else if (cont !== void 0)
-			return cont
+		else if (cont !== void 0) return cont
 	}
 	function clone(obj) {
 	  if (null == obj || "object" != typeof obj) return obj;
@@ -221,15 +203,16 @@ if (!Function.prototype.bind) {
 		},
 		list: function(args) {
 			var argObj = {}
+				, itemTag = (args.itemTag) ? args.itemTag : 'li'
 			for (k in args)
-				if (!isElem(specialListArg, k))
-					argObj[k] = args[k]
+				if (!isElem(specialListArg, k))	argObj[k] = args[k]
+
 			var result = (!isEmpty(argObj)) ? this.ul(argObj, true) : {name: 'ul'},
 				ordered = ((args.ordered !== void 0) && (args.ordered)),
 				justItems = (((args.justItems !== void 0) && (args.justItems)) || ((args.justitems !== void 0) && (args.justitems)))
 			result.content = []	
 			if (isNumber(args.items))
-				result.ul = this.li(args.items, true)
+				result.ul = this[itemTag](args.items, true)
 			else if (args.items instanceof Array) {
 				for (var i = 0; i < args.items.length; i++) {
 					listValueArr.push({val: args.items[i], i: i})
@@ -237,15 +220,13 @@ if (!Function.prototype.bind) {
 					if (args.content !== void 0)
 						o.content = listContentTrack(clone(args.content), args.items[i], i)
 					o.listValueIndex = listValueArr.length-1
-					result.content.push(this.li(o, true))
+					result.content.push(this[itemTag](o, true))
 				}
 			}
-			if (justItems) {
+			if (justItems)
 				for (k in result.content)
 					this.val.push(result.content[k])
-			}
-			else
-				this.val.push(result)
+			else this.val.push(result)
 			return this
 		},
 		Table: function(args) {
@@ -323,7 +304,7 @@ if (!Function.prototype.bind) {
     }
 	}
 	HuK = function(selector) {
-		return (selector) ? new Protoss($(selector)) : new Protoss()
+		return selector ? new Protoss($(selector)) : new Protoss()
 	}
 
 	HuK.constructor.prototype['addTag'] = function(name) {
@@ -331,21 +312,16 @@ if (!Function.prototype.bind) {
 			if(isNumber(elem)){ 
 				var arr = []	
 				for(var i=0;i<elem;i++)	
-					if (local) arr.push({name: name})
-					else 
-						this.val.push({name: name})
-					return (local) ? arr : this
+					local ? arr.push({name: name}) : this.val.push({name: name})
+					return local ? arr : this
 			}	else if (typeof elem === 'string') {
 				this.val.push({name:name, content: elem})
 				return this
 			}	else if (elem instanceof Array){
 				var arr = []
 				for(i in elem)
-					if (local)
-						arr.push(elem[i])
-					else 
-						this.val.push(elem[i])
-				return (local) ? arr : this
+					local ? arr.push(elem[i]) : this.val.push(elem[i])
+				return local ? arr : this
 			}
 			else if (isUndefined(elem)) {
 				if (local) return {name:name}
@@ -367,5 +343,8 @@ if (!Function.prototype.bind) {
 			return HuK()[name](elem).value()
 		};
 	})
+	HuK.constructor.prototype['list'] = function(elem) {
+		return HuK()['list'](elem).value()
+	};
 	return HuK
 })
