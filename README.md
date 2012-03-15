@@ -1,6 +1,6 @@
 <h1>HuK</h1>
 
-HuK.js is a library for generating HTML code in JavaScript. It will be an [Ender.js](https://github.com/ded/Ender.js) module and it uses some basic modules ([bonzo](https://github.com/ded/bonzo), [bean](https://github.com/fat/bean)). Or you can simply use it with [jQuery](https://github.com/jquery/jquery).
+HuK.js is a library for generating HTML code written in JavaScript. It will be an [Ender.js](https://github.com/ded/Ender.js) module and it uses some basic modules ([bonzo](https://github.com/ded/bonzo), [bean](https://github.com/fat/bean)). Or you can simply use it with [jQuery](https://github.com/jquery/jquery).
 
 <h2>Example</h2>
 
@@ -8,14 +8,14 @@ HuK.js is a library for generating HTML code in JavaScript. It will be an [Ender
 HuK('.foo')
 	.h1('Title')
 	.div({
-		class: 'klass',
-		content: 'Text'
+		class: 'klass'
+		, content: 'Text'
 	})
 	.textarea()
 	.button({
-		id: 'bar',
-		content: 'Click!',
-		click: function(arg) {
+		id: 'bar'
+		, content: 'Click!'
+		, click: function(arg) {
 			console.log($('textarea').val())
 		}
 	})
@@ -41,12 +41,12 @@ The events in [bean](https://github.com/fat/bean) can be written here too.
 ``` js
 	HuK('.foo')
 		.div({
-			content: 'Text',
-			data: 'Some variable',
-			hover: function() {
+			content: 'Text'
+			, data: 'Some variable'
+			, hover: function() {
 				alert('bar')
-			},
-			click: function() {
+			}
+			, click: function() {
 				console.log(this.data)
 			}
 		})
@@ -68,9 +68,10 @@ If you want to access some data in the event function, you can pass it in the `d
 
 This function creates an HTML list (`<ul><li></li>...</ul>`) and you can use an array (what you may want to fill it) and it creates the whole list. If you want to refer to the value to the array put there `<<value>>` in the string (or `<<value.etwas>>` if it is an object). You can refer to the current index with `<<index>>`.
 
-* `items` - the items of the list (array or if it is a number it makes that many empty items)
-* `itemArgs` - object, here comes the items' arguments
+* `items`     - the items of the list (array or if it is a number it makes that many empty items)
+* `itemArgs`  - object, here comes the items' arguments
 * `justItems` - true, or false; if false it makes the list without the `<ul>`
+* `itemTag`   - changes the item's HTML tag
 
 You can access the current value, index of the list and the path in the <i>this</i> variable in the event functions too.
 
@@ -78,18 +79,30 @@ You can access the current value, index of the list and the path in the <i>this<
 	var arr = ['MC', 'Nestea', 'Hero']
 	HuK('#foo')
 		.list({
-			items: arr,
-			class: 'players',
-			itemArgs: {
-				id: '<<index>>',
-				content: '<<value>>'
+			items: arr
+			, class: 'players'
+			, itemArgs: {
+				id: '<<index>>'
+				, content: '<<value>>'
 			}
-			click: function() {
+			, click: function() {
 				console.log(this.data+this.i) // Current value of the list and the current index
 				console.log(this.path)       // Current path (here: #foo ul li)
 			}
 		})
 	.text()
+```
+
+You can make a list from tags other than `<li>`:
+
+``` js
+	HuK('#foo')
+		.list({
+			items: names
+			, itemTag: 'button'
+			, content: 'Click this, <<value>>!'
+		})
+	.append()
 ```
 
 <h3>.Table()</h3>
@@ -103,9 +116,9 @@ This creates a table from `<div>`s, similar to `.list()`. To refer to the two in
 ``` js
 	HuK('#foo')
 		.Table({
-			row: 5,
-			col: 4,
-			itemArgs: {
+			row: 5
+			, col: 4
+			, itemArgs: {
 				id: '<<index>>_<<index2>>'
 			}
 		})
@@ -125,6 +138,7 @@ If you want to nest some content, you have use the `.value()` function in the en
 				.h3({
 					content: HuK()
 						.span('Title3')
+						.span('Title4')
 					.value()
 				})
 			.value()
@@ -138,13 +152,13 @@ But if you do not chain functions when nesting, you can also write the nested el
 	HuK('#bar')
 		div({
 			content: HuK.a({
-				href: 'url',
-				content: 'link'
+				href: 'url'
+				, content: 'link'
 			})
 		})
 ```
 
-<h2>Bootstrap supports</h2>
+<h2>Working with Twitter Bootstrap</h2>
 
 HuK.js supports [Twitter Bootstrap](http://twitter.github.com/bootstrap), but you have to download the jQuery plugin yourself, it is not included. So you can write the following code:
 
@@ -153,22 +167,22 @@ HuK.js supports [Twitter Bootstrap](http://twitter.github.com/bootstrap), but yo
 		.div({
 			class: 'btn-group',
 			content: HuK().a({
-					class: 'btn dropdown-toggle',
-					'data-toggle': 'dropdown',
-					href: '#',
-					content: 'Action <span class="caret"></span>'
+					class: 'btn dropdown-toggle'
+					, 'data-toggle': 'dropdown'
+					, href: '#'
+					, content: 'Action <span class="caret"></span>'
 				})
 				.list({
-					items: arr,
-					class: 'dropdown-menu',
-					content:
+					items: arr
+					, class: 'dropdown-menu'
+					, content:
 						HuK.a({
-							rel: 'tooltip',
-							title: '<<index>>',
-							tooltip: {
+							rel: 'tooltip'
+							, title: '<<index>>'
+							, tooltip: {
 								placement: 'bottom'
-							},
-							content: '<<value>>'
+							}
+							, content: '<<value>>'
 						})
 				}).value()
 		})
