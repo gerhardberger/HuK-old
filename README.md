@@ -22,7 +22,7 @@ HuK('.foo')
 .append()
 ```
 
-<h2>HuK() function</h2>
+<h2>HuK function</h2>
 
 You pass the selector name in and in the end you can do `.append()`, `.prepend()`, `.html()`, `.text()`, `.before()`, `.after()`.
 
