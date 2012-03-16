@@ -203,7 +203,7 @@ You can add new HTML tags to HuK.js:
 
 You can use HuK.js as an ender module:
 
-`ender build HuK`
+```ender build HuK```
 
 And write the code like so:
 
