@@ -1,6 +1,6 @@
 <h1>HuK</h1>
 
-HuK.js is a library for generating HTML code written in JavaScript. It will be an [Ender.js](https://github.com/ded/Ender.js) module and it uses some basic modules ([bonzo](https://github.com/ded/bonzo), [bean](https://github.com/fat/bean)). Or you can simply use it with [jQuery](https://github.com/jquery/jquery).
+HuK.js is a library for generating HTML code written in JavaScript. It is an [Ender.js](https://github.com/ded/Ender.js) module and it uses some basic modules ([bonzo](https://github.com/ded/bonzo), [bean](https://github.com/fat/bean)). Or you can simply use it with [jQuery](https://github.com/jquery/jquery).
 
 <h2>Example</h2>
 
@@ -197,4 +197,22 @@ You can add new HTML tags to HuK.js:
 
 ``` js
 	HuK.addTag('newtag')
+```
+
+<h2>Using Ender</h2>
+
+You can use HuK.js as an ender module:
+
+`ender build HuK`
+
+And write the code like so:
+
+``` js
+	$.huk('.foo')
+		.list({
+			items: list
+			, content: $.huk.a('Test')
+		})
+		.span('Text')
+	.append()
 ```
