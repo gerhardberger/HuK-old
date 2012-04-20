@@ -1,0 +1,17 @@
+{
+  "name": "HuK"
+  , "description": "A library generating HTML code."
+  , "version": "1.0.0"
+  , "homepage": "https://github.com/gerhardberger/HuK"
+  , "authors": "Gerhard Berger <@gerhard_berger>"
+  , "repository": {
+    "type": "git"
+    , "url": "git@github.com:gerhardberger/HuK.git"
+  }
+  , "dependencies": {
+    "bonzo": "*"
+    , "bean": "*"
+  }
+  , "main": "./src/project/blamo.js"
+  , "keywords": ["html", "generate", "template"]
+}
