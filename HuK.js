@@ -11,7 +11,6 @@ if (!Function.prototype.bind) {
                                aArgs.concat(Array.prototype.slice.call(arguments)));  
         };  
     fNOP.prototype = this.prototype;  
-    fBound.prototype = new fNOP();   
     return fBound;  
   };  
 }
@@ -28,27 +27,24 @@ if (!Function.prototype.bind) {
 		this.val = []
 		this.selector = selector
 	}
-	var result = ''
-		, isText = false
+	var result       = ''
+		, isText       = false
 		, listValueArr = []
-		, elTree = []
-		, eventArr = []
-		, events = ['hover', 'blur ', 'change', 'click', 'dblclick', 'focusin', 'focusout', 'keydown'
-				, 'keypress', 'keyup', 'mousedown', 'mouseenter', 'mouseleave', 'mouseout', 'mouseover'
-				, 'mousemove', 'resize', 'scroll', 'select', 'submit', 'unload', 'complete']
-		, bootstrapArr = ['modal', 'dropdown', 'scrollspy', 'tab', 'tooltip', 'popover'
-				, 'alert', 'button', 'collapse', 'carousel', 'typeahead']
-		, bootArr = []
-		,	HuKelementArray = ['a', 'area', 'article', 'adress', 'abbr', 'audio', 'b', 'button', 'base', 'bdi', 'bdo', 'center'
-				, 'blockquote', 'cite', 'col', 'colgroup', 'command', 'datalist', 'details', 'dl', 'figure', 'footer', 'header'
-				, 'hgroup', 'map', 'keygen', 'kbd', 'map', 'mark', 'meter', 'nav', 'noscript', 'object', 'param', 'output', 'progress'
-				, 'rp', 'rt', 'ruby', 'section', 'source', 'summary', 'sub', 'time', 'tfoot', 'sup', 'track', 'video', 'wbr', 'figcaption'
-				, 'caption', 'canvas', 'code', 'div', 'dt', 'dd', 'em', 'fieldset', 'font', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'
-				, 'i', 'iframe', 'img', 'input', 'label', 'li', 'menu', 'meta', 'ol', 'p', 'pre','script', 'select', 'span'
-				, 'strong', 'style', 'table', 'tbody', 'td', 'tr', 'textarea', 'ul', 'hr']
-		, elseArr = ['name', 'content', 'listValueIndex', 'data']
-		, specialListArg = ['items', 'content', 'ordered', 'itemargs', 'itemArgs', 'justItems', 'justitems']
-		, shortTags = ['input', 'img', 'br', 'col', 'hr', 'link', 'meta', 'param', 'source']
+		, elTree       = []
+		, eventArr     = []
+		, events       = 'hover blur change click dblclick focusin focusout keydown keypress keyup mousedown mouseenter'+
+										 ' mouseleave mouseout mouseover mousemove resize scroll select submit unload complete'
+		, bootstrapArr = 'modal dropdown scrollspy tab tooltip popover alert button collapse carousel typeahead'
+		, bootArr      = []
+		,	HuKelementArray = 'a area article adress abbr audio b button base bdi bdo center blockquote cite col'  +
+												' colgroup command datalist details dl figure footer header hgroup map keygen kbd'   +
+												' mark meter nav noscript object param output progress rp rt ruby section source sub'+
+												' summary time tfoot sup track video wbr figcaption caption canvas code div dt dd'   +
+												' em fieldset font form h1 h2 h3 h4 h5 h6 i iframe img input label li menu meta ol p'+
+												' pre script select span strong style table tbody td tr textarea ul hr'
+		, elseArr         = 'name content listValueIndex data'
+		, specialListArg  = 'items content ordered itemargs itemArgs justItems justitems'
+		//, shortTags     = 'input img br col hr link meta param source'
 
 
 	function each(a, b) {
@@ -63,13 +59,13 @@ if (!Function.prototype.bind) {
 		return i < arr.length
 	}
 	function notElse(k) {
-		return !isElem(elseArr,k)
+		return !isElem(elseArr.split(' '),k)
 	}
 	function isBootstrap(k) {
-		return isElem(bootstrapArr,k)
+		return isElem(bootstrapArr.split(' '),k)
 	}
 	function isEvent(k) {
-		return isElem(events,k)
+		return isElem(events.split(' '),k)
 	}
 	function isEmpty(a) {
 		if (a instanceof Array || typeof a === 'string')
@@ -173,11 +169,6 @@ if (!Function.prototype.bind) {
 	}
 	function clone(obj) {
 	  if (null == obj || "object" != typeof obj) return obj;
-	  if (obj instanceof Date) {
-	    var copy = new Date();
-	    copy.setTime(obj.getTime());
-	    return copy;
-	  }
 	  if (obj instanceof Array) {
 	    var copy = []
 	    var len = obj.length
@@ -207,8 +198,9 @@ if (!Function.prototype.bind) {
 		list: function(args) {
 			var argObj = {}
 				, itemTag = (args.itemTag) ? args.itemTag : 'li'
+
 			for (var k in args)
-				if (!isElem(specialListArg, k))	argObj[k] = args[k]
+				if (!isElem(specialListArg.split(' '), k))	argObj[k] = args[k]
 
 			var result = (!isEmpty(argObj)) ? this.ul(argObj, true) : {name: 'ul'},
 				ordered = ((args.ordered !== void 0) && (args.ordered)),
@@ -235,7 +227,7 @@ if (!Function.prototype.bind) {
 		Table: function(args) {
 			var argObj = {}
 			for (k in args)
-				if (!isElem(specialListArg, k))
+				if (!isElem(specialListArg.split(' '), k))
 					argObj[k] = args[k]
 			if (!isEmpty(argObj)) {
 				argObj.style = 'display:table;'
@@ -318,7 +310,7 @@ if (!Function.prototype.bind) {
 				var arr = []	
 				for(var i=0;i<elem;i++)	
 					local ? arr.push({name: name}) : this.val.push({name: name})
-					return local ? arr : this
+				return local ? arr : this
 			}	else if (typeof elem === 'string') {
 				this.val.push({name:name, content: elem})
 				return this
@@ -342,7 +334,7 @@ if (!Function.prototype.bind) {
 		};
 	}
 
-	each(HuKelementArray, function(name) {
+	each(HuKelementArray.split(' '), function(name) {
 		HuK.addTag(name)
 		HuK.constructor.prototype[name] = function(elem) {
 			return HuK()[name](elem).value()
