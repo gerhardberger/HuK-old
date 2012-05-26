@@ -171,7 +171,7 @@ If you nest multiple elements, you have to call the `.val()` function at the end
 You can use huk.js as an ender module:
 
 ```
-	ender build huk
+	ender build HuK
 ```
 
 And write the code like so:
