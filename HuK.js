@@ -1,347 +1,264 @@
-if (!Function.prototype.bind) {  
-  Function.prototype.bind = function (oThis) {  
-    if (typeof this !== "function") { throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable"); }
-    var aArgs = Array.prototype.slice.call(arguments, 1),   
-        fToBind = this,   
-        fNOP = function () {},  
-        fBound = function () {  
-          return fToBind.apply(this instanceof fNOP  
-                                 ? this  
-                                 : oThis || window,  
-                               aArgs.concat(Array.prototype.slice.call(arguments)));  
-        };  
-    fNOP.prototype = this.prototype;  
-    return fBound;  
-  };  
-}
-!function (name, definition) {
-	if (typeof module != 'undefined') module.exports = definition()
-	else if (typeof define == 'function' && define.amd) define(name, definition)
-	else this[name] = definition()
-}('HuK', function() {
+(function (name, definition) {
+	if (typeof module != 'undefined') module.exports = definition();
+	else if (typeof define == 'function' && define.amd) define(name, definition);
+	else this[name] = definition();
+})('huk', function() {
 
-	'use strict'
+	'use strict';
 
-	function Protoss(selector) {
-		this.length = 1
-		this.val = []
-		this.selector = selector
+	var HTMLElements = 'a area article adress abbr audio b button base bdi bdo center blockquote cite col'  +
+										 ' colgroup command datalist details dl figure footer header hgroup map keygen kbd'   +
+										 ' mark meter nav noscript object param output progress rp rt ruby section source sub'+
+										 ' summary time tfoot sup track video wbr figcaption caption canvas code div dt dd'   +
+										 ' em fieldset font form h1 h2 h3 h4 h5 h6 i iframe img input label li menu meta ol p'+
+										 ' pre script select span strong style table tbody td tr textarea ul hr'
+		, tagWithSrc   = 'img iframe audio video'
+		, insertFn     = 'append after before html text prepend'
+		, mainEvents   = 'click hover'
+		, $            = jQuery || ender
+	;
+
+	function isElem(k,a) {var i=0; while ((i<a.length) && (a[i] != k))	i++; return i < a.length; }
+
+	function filter2(es, f) {
+		var a = [], b = [];
+
+		_.each(es, function(e) {
+			if (f.call(null, e)) a.push(e);
+			else b.push(e);
+		});
+		return [a,b];
 	}
-	var result       = ''
-		, isText       = false
-		, listValueArr = []
-		, elTree       = []
-		, eventArr     = []
-		, events       = 'hover blur change click dblclick focusin focusout keydown keypress keyup mousedown mouseenter'+
-										 ' mouseleave mouseout mouseover mousemove resize scroll select submit unload complete'
-		, bootstrapArr = 'modal dropdown scrollspy tab tooltip popover alert button collapse carousel typeahead'
-		, bootArr      = []
-		,	HuKelementArray = 'a area article adress abbr audio b button base bdi bdo center blockquote cite col'  +
-												' colgroup command datalist details dl figure footer header hgroup map keygen kbd'   +
-												' mark meter nav noscript object param output progress rp rt ruby section source sub'+
-												' summary time tfoot sup track video wbr figcaption caption canvas code div dt dd'   +
-												' em fieldset font form h1 h2 h3 h4 h5 h6 i iframe img input label li menu meta ol p'+
-												' pre script select span strong style table tbody td tr textarea ul hr'
-		, elseArr         = 'name content listValueIndex data'
-		, specialListArg  = 'items content ordered itemargs itemArgs justItems justitems'
-		//, shortTags     = 'input img br col hr link meta param source'
 
 
-	function each(a, b) {
-		if ((!isArray(a)) || (!isObject(a))) b.call(a,a)
-		else
-			for (var i in a)
-				b.call(a[i], a[i], (isNaN(parseInt(i)) ? i : parseInt(i)))
+
+	// Local functions
+
+	function fireEvents(elem, es, data, ix) {
+		_.each(es, function(e,k) {
+			$(elem).on(k, function(event) {
+				e.call(this, event, data, ix);
+			});
+		});
 	}
-	function isElem(arr,k) {
-		var i = 0
-		while ((i<arr.length) && (arr[i] != k))	i++
-		return i < arr.length
+	function fst(a) { return a[0]; }
+	function snd(a) { return a[1]; }
+	function thd(a) { return a[2]; }
+
+	function fireCSS(el, css) {
+		$(el).css(css);
 	}
-	function notElse(k) {
-		return !isElem(elseArr.split(' '),k)
-	}
-	function isBootstrap(k) {
-		return isElem(bootstrapArr.split(' '),k)
-	}
-	function isEvent(k) {
-		return isElem(events.split(' '),k)
-	}
-	function isEmpty(a) {
-		if (a instanceof Array || typeof a === 'string')
-			return a.length===0
-		for (var c in a)
-			if(Object.prototype.hasOwnProperty.call(a,c))
-				return!1
-		return!0
-	}
-	function isNumber(e) {
-		return!! (e===0 || e && e.toExponential && e.toFixed)
-	}
-	function prepend(e,a) {
-		for (var i = a.length-1; i>=0; i--)	a[i+1] = a[i]
-		a[0] = e		
-		return a
-	}
-	function isFunction(a) {
-		return! (!a || !a.constructor || !a.call || !a.apply)
-	}
-	function isUndefined(a) {
-		return (a === void 0)
-	}
-	function isArray(a) {
-		return (a instanceof Array)
-	}
-	function isObject(a) {
-		return (a instanceof Object)
-	}
-	function isString(a) {
-		return (typeof a === 'string')
-	}
-	function runEvents() {
-		each(eventArr, function(e) {
-			var binding = {
-				path: e.target,
-				data: (e.val) ? e.val.val : null,
-				index: (e.val) ? ((e.val.i) ? e.val.i : 0) : null
+
+	function getEvents(os) {
+		var events = os.events || {};
+		delete os.events;
+
+		_.each(os, function(o,k) {
+			if (isElem(k, mainEvents.split(' '))) {
+				events[k] = o;
+				delete os[k];
 			}
-			e.event == 'complete' ?	e.fn.call(binding,binding) : $(e.target)[e.event](e.fn.bind(binding,binding))
-		})
-	}
-	function runBootstrap() {
-		if (isEmpty(bootArr)) return
-		each(bootArr, function(e) {
-			e.val == true ? $(e.target)[e.fn].call($(e.target)) :	$(e.target)[e.fn].call($(e.target), e.val)
-		})
+		});
+
+		return events;
 	}
 
-	function parse(obj) {
-		if (isArray(obj))
-			each(obj, function(e) {
-				parse(e)
-			})
-		else if (!isUndefined(obj.name)) {
-			elTree.push((obj.id) ? '#'+obj.id : ((obj.class) ? '.'+obj.class.split(' ')[0] : obj.name))
-			result += '<'+obj.name
-			for (var i in obj)
-				if (isEvent(i)) {
-					var eventObj = {
-						event: i,
-						fn: obj[i],
-						target: elTree.join(' '),
-					}
-					if (!isUndefined(obj.listValueIndex))	eventObj['val'] = listValueArr[obj.listValueIndex]
-					else if (obj.hasOwnProperty('data'))
-						eventObj['val'] = {
-							path: eventObj.target,
-							val: obj.data
-						}
-					eventArr.push(eventObj)
-				} else if (isBootstrap(i)) {
-					var bootObj = {
-						fn: i,
-						val: obj[i],
-						target: elTree.join(' '),
-					}
-					bootArr.push(bootObj)
-				}	else if (notElse(i))
-					result += ' '+i+'="'+obj[i]+'"'
-			result += '>'
-			if (!isUndefined(obj.content)) parse(obj.content)
-			result += '</'+obj.name+'>'
-			elTree.splice(elTree.length-1,1)
+	function appendContent(el, cs) {
+		if (_.isString(cs))
+			el.appendChild(document.createTextNode(cs));
+		else if (_.isArray(cs))
+			_.each(cs, function(c) { appendContent(el, c); });
+		else if (_.isElement(cs))
+			el.appendChild(cs.cloneNode(true));
+
+		return el;
+	}
+
+	function createEl_(n, os, ix) {
+		var el = document.createElement(n)
+			, content
+			, events
+			, css
+		;
+
+		if (_.isString(os))	os = isElem(n, tagWithSrc.split(' ')) ? {src: os} : {content: os};
+
+		// Handle events
+		events = getEvents(os);
+		fireEvents(el, events, os.data, ix);
+
+		// Get CSS
+		if (os.css) fireCSS(el, os.css);
+		delete os.css;
+
+
+		// Get content
+		content = os.content || '';
+		delete os.content;
+
+		// Append the content
+		if (content) el = appendContent(el, content,ix);
+
+		// Set attributes
+		_.each(os, function(o,k) {
+			if (k != 'data') el.setAttribute(k,o);
+		});
+
+		return el;
+	}
+
+	function createEl(n, os, that) {
+		var comp = []
+			, el   = []
+		;
+
+		if (_.isUndefined(os)) os = {};
+
+		if (_.isArray(os)) {
+			_.each(os, function(o) {
+				comp.push(o.complete);
+				delete o.complete;
+				el.push(createEl_(n, o));
+			});
 		}
-		else if (isString(obj))	result += obj
-	}
-	function listContentTrack(cont, value, index, index2) {
-		if (typeof cont === 'string') {			
-			var arr = cont.match(/<<.[^ ,>>,<<]*>>/gi)
-			if (!isEmpty(arr))
-				each(arr, function(e) {	eval('cont = cont.replace(/<<.[^ ,>>,<<]*>>/i, '+e.substr(2,(e.length-4))+')') })
-			return cont
+		else {
+			if (_.isFunction(os.complete)) {
+				comp.push(os.complete);
+				delete os.complete;
+			}
+			el.push(createEl_(n, os));
 		}
-		else if ((cont instanceof Array) || (cont instanceof Object)) {
-			for (var k in cont)
-				isEvent(k) ? cont['listValueIndex'] = listValueArr.length-1 : cont[k] = listContentTrack(cont[k], value, index, index2)
-			return cont
-		}
-		else if (cont !== void 0) return cont
-	}
-	function clone(obj) {
-	  if (null == obj || "object" != typeof obj) return obj;
-	  if (obj instanceof Array) {
-	    var copy = []
-	    var len = obj.length
-	    for (var i = 0; i < len; ++i)
-	      copy[i] = clone(obj[i])
-	    return copy
-	  }    
-	  if (obj instanceof Object) {
-	    var copy = {}
-	    for (var attr in obj)
-	    if (obj.hasOwnProperty(attr)) copy[attr] = clone(obj[attr])
-	    return copy
-	  }
-	  throw new Error("Unable to copy obj! Its type isn't supported.");
+
+		if (!_.isEmpty(comp)) that.completes.push([comp, os.data, el]);
+
+		that.data = that.data.concat(el);
 	}
 
-	Protoss.prototype = {
-		norris: function(args) {
-			elTree = []
-			eventArr = []
-			bootArr = []
-			result = ''
-			var obj = this.val
-			parse(obj)
-			return result
-		},
-		list: function(args) {
-			var argObj = {}
-				, itemTag = (args.itemTag) ? args.itemTag : 'li'
+	function getItemArgs(os) {
 
-			for (var k in args)
-				if (!isElem(specialListArg.split(' '), k))	argObj[k] = args[k]
+		var r = _.extend({}, os.itemArgs);
+		if (os.content) r.content = os.content;
 
-			var result = (!isEmpty(argObj)) ? this.ul(argObj, true) : {name: 'ul'},
-				ordered = ((args.ordered !== void 0) && (args.ordered)),
-				justItems = (((args.justItems !== void 0) && (args.justItems)) || ((args.justitems !== void 0) && (args.justitems)))
-			result.content = []	
-			if (isNumber(args.items))
-				result.ul = this[itemTag](args.items, true)
-			else if (args.items instanceof Array) {
-				for (var i = 0; i < args.items.length; i++) {
-					listValueArr.push({val: args.items[i], i: i})
-					var o = (args.itemArgs) ? listContentTrack(clone(args.itemArgs), args.items[i], i) : {}
-					if (args.content !== void 0)
-						o.content = listContentTrack(clone(args.content), args.items[i], i)
-					o.listValueIndex = listValueArr.length-1
-					result.content.push(this[itemTag](o, true))
+		return r;
+	}
+
+	function getValue(vs, i) {
+		if (vs.length == 1) return i[vs];
+
+		return getValue(_.rest(vs), i[_.first(vs)]);
+	}
+
+	function  listFn(os) {
+		var lis
+			, ul
+			, iTag   = os.itemTag || 'li'
+			, jItems = os.justItems
+			, self   = this
+		;
+		if (_.isNumber(os.items)) os.items = _.range(os);
+
+		lis = os.items.map(function(item, index) {
+			var o = getItemArgs(os)
+				, el
+				, el_
+				, insert = {
+					value: item
+					, index: index
 				}
-			}
-			if (justItems)
-				for (k in result.content)
-					this.val.push(result.content[k])
-			else this.val.push(result)
-			return this
-		},
-		Table: function(args) {
-			var argObj = {}
-			for (k in args)
-				if (!isElem(specialListArg.split(' '), k))
-					argObj[k] = args[k]
-			if (!isEmpty(argObj)) {
-				argObj.style = 'display:table;'
-				var table  = this.div(argObj, true)
-				table.content = []
-			}
-			else
-				var table = {name: 'div', style: 'display:table;', content: []}
-			if (args.row === void 0)
-				args.col = args.row
-			else if (args.col === void 0)
-				args.row = args.col
-			if (args.items) {
-				args.row = args.items.length
-				args.col = (args.items[0].length !== void 0) ?  args.items[0].length : 1
-			}
-			for (var i = 0; i<args.row; i++) {
-				var row = {name: 'div', style: 'display:table-row;', content: []}
-				for (var j = 0; j<args.col;j++) {
-					if (args.itemArgs)
-						var o = (args.items) ? listContentTrack(clone(args.itemArgs), args.items[i][j], i, j) : listContentTrack(clone(args.itemArgs), '', i, j)
-					else
-						var o = {}
-					if (args.content !== void 0)
-						args.items ? o.content = listContentTrack(clone(args.content), args.items[i][j], i, j) : o.content = listContentTrack(clone(args.content), '', i, j)
+			;
+			o.data = item;
+			
+			el = createEl_(iTag, o, index);
 
-					o.style ? o.style  += 'display:table-cell;' : o.style = 'display:table-cell;'
-					row.content.push(this.div(o, true))
+			_.each(el.attributes, function(attr) {
+				attr.value = attr.value.replace(/<<.[a-z,.,0-9,_,-]*>>/gi, function(e) {
+					e = e.substr(2, e.length-4);
+					if (_.first(e) == 'v') {
+						return getValue(e.split('.'), insert);
+					}
+					else return insert[e];
+				});
+			});
+
+
+			el.innerHTML = el.innerHTML.replace(/&lt;&lt;.[a-z,.,0-9,_,-]*&gt;&gt;/gi, function(e) {
+				e = e.substr(8, e.length-16);
+				if (_.first(e) == 'v'){
+					return getValue(e.split('.'), insert);
 				}
-				table.content.push(row)
-			}
-			this.val.push(table)
-			return this
-		},
-		value: function() {
-			var val = this.val
-			this.val = []
-			return (val.length == 1) ? val[0] : val
-		},
-		html: function () {
-			this.selector.html(this.norris())
-			runEvents()
-			runBootstrap()
-    },
-    text: function () {
-			this.selector.html(this.norris())
-			runEvents()
-			runBootstrap()
-    },
-		append: function () {
-			this.selector.append(this.norris())
-			runEvents()
-			runBootstrap()
-    },
-    before: function () {
-			this.selector.before(this.norris())
-			runEvents()
-			runBootstrap()
-    },
-		after: function () {
-			this.selector.after(this.norris())
-			runEvents()
-			runBootstrap()
-    },
-    prepend: function () {
-			this.selector.prepend(this.norris())
-			runEvents()
-			runBootstrap()
-    }
+				else return insert[e];
+			});
+
+			return el;
+		});
+
+		delete os.items;
+		delete os.itemArgs;
+		delete os.itemTag;
+		delete os.content;
+		delete os.justItems;
+
+		if (jItems) self.data = self.data.concat(lis);
+		else {
+			ul = createEl_('ul', os);
+
+			_.each(lis, function(li) {
+				ul.appendChild(li);
+			});
+
+			self.data.push(ul);
+		}
+
+		return self;
 	}
 
 
-	function HuK(selector) {
-		return selector ? new Protoss($(selector)) : new Protoss()
+
+
+	// Prototype functions
+
+	function Huk(selector) {
+		this.el        = $(selector);
+		this.data      = [];
+		this.completes = [];
 	}
 
-	HuK.constructor.prototype['addTag'] = function(name) {
-		Protoss.prototype[name] = function(elem,local) {
-			if(isNumber(elem)){ 
-				var arr = []	
-				for(var i=0;i<elem;i++)	
-					local ? arr.push({name: name}) : this.val.push({name: name})
-				return local ? arr : this
-			}	else if (typeof elem === 'string') {
-				this.val.push({name:name, content: elem})
-				return this
-			}	else if (elem instanceof Array){
-				var arr = []
-				for(i in elem)
-					local ? arr.push(elem[i]) : this.val.push(elem[i])
-				return local ? arr : this
-			}
-			else if (isUndefined(elem)) {
-				if (local) return {name:name}
-				this.val.push({name:name})
-				return this
-			}
-			else {
-				elem.name=name
-				if (local) return elem
-				this.val.push(elem)
-			return this
-			}
+	
+
+	Huk.prototype.list = listFn;
+	Huk.constructor.prototype.list = listFn;
+
+	Huk.constructor.prototype.addTag = function(n) {
+		Huk.prototype[n] = function(os) { createEl(n, os, this); return this; };
+
+		Huk.constructor.prototype[n] = function(os) {
+			return createEl_(n, os);
 		};
-	}
-
-	each(HuKelementArray.split(' '), function(name) {
-		HuK.addTag(name)
-		HuK.constructor.prototype[name] = function(elem) {
-			return HuK()[name](elem).value()
-		};
-	})
-	HuK.constructor.prototype['list'] = function(elem) {
-		return HuK()['list'](elem).value()
 	};
-	return HuK
-})
+
+	_.each(HTMLElements.split(' '), function(e) {
+		Huk.addTag(e);
+	});
+
+	_.each(insertFn.split(' '), function(f) {
+		Huk.prototype[f] = function() {
+			var el = this.el;
+
+			$(el)[f](this.data);
+
+			_.each(this.completes, function(c) {
+				_.each(thd(c), function(e,i) {
+					var f = fst(c)[i];
+					if (!_.isUndefined(f))f.call(e, snd(c));
+				});
+			});
+		};
+	});
+	Huk.prototype.val = function() { return this.data; };
+
+	function huk(selector) {
+		return new Huk(selector);
+	}
+
+	return huk;
+});

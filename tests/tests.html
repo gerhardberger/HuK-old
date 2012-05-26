@@ -1,0 +1,267 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>huk Tests</title>
+  <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+
+  <link rel="stylesheet" href="sink.css" type="text/css">
+    
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
+  <script type="text/javascript" src="sink.js"></script>
+  <script type="text/javascript" src="../underscore.js"></script>
+  <script type="text/javascript" src="../huk.js"></script>
+</head>
+<body>
+  <h1>Sink Tests</h1>
+  <ol id="tests"></ol>
+
+  <div id="ins" style="display:none"></div>
+
+  <script type="text/javascript">
+    sink('huk', function(test, ok, before, after) {
+      test('Parameter types', 3, function() {
+        ok(huk.div({class: 'foo', id: 'id', content: 'bar'}).outerHTML == '<div class="foo" id="id">bar</div>', 'Object parameter passed!')
+        ok(huk.div('foobar').outerHTML == '<div>foobar</div>', 'String parameter passed!')
+        ok(huk.img('foo.jpg').outerHTML == '<img src="foo.jpg">', 'Src parameter passed!')
+      })
+
+      test('Single element', 3, function() {
+        ok(_.isElement(huk.div({id: 'foo', content: 'bar'})), 'valid div element')
+        ok(_.isElement(huk.a('bar')), 'valid a element')
+        ok(_.isElement(huk.img('foo.jpg')), 'valid img element')
+      })
+
+      test('Nesting string/single/multiple/array', 4, function() {
+        ok(huk.div({content: 'string test'}).innerHTML == 'string test', 'Single string passed!')
+        ok(huk.div({content: huk.span('test')}).innerHTML == '<span>test</span>', 'Single element passed!')
+        ok(huk.div({content: huk().a('foo').i('bar').b('baz').val()}).innerHTML == '<a>foo</a><i>bar</i><b>baz</b>', 'Multiple element passed!')
+        ok(huk.div({content: ['foo', huk.a('bar'), huk().i('bar').b('foo').val()]}).innerHTML == 'foo<a>bar</a><i>bar</i><b>foo</b>', 'Array of content passed!')
+      })
+
+      test('.addTag() function', 2, function() {
+        huk.addTag('foo')
+        ok(huk.foo({class: 'bar', content: 'test'}).outerHTML == '<foo class="bar">test</foo>', 'Addtag function to single element')
+
+        huk.addTag('bar')
+        ok(huk.div({content: huk().foo('test').bar('test').i('test').val()}).innerHTML == '<foo>test</foo><bar>test</bar><i>test</i>', 'Addtag function to chained element')
+      })
+
+      test('Insertion tests', 5, function() {
+        var $e = $('#ins')
+          , e  = '#ins'
+
+        huk(e)
+          .a('test')
+          .b('foo')
+        .html()
+
+        ok($e.html() == '<a>test</a><b>foo</b>', '.html() passed!')
+
+
+        huk(e).i('test').html()
+
+        huk(e)
+          .a('test')
+          .b('foo')
+        .append()
+
+
+        ok($e.html() == '<i>test</i><a>test</a><b>foo</b>', '.append() passed!')
+
+
+        huk(e).i('test').html()
+
+        huk(e)
+          .a('test')
+          .b('foo')
+        .prepend()
+
+        ok($e.html() == '<a>test</a><b>foo</b><i>test</i>', '.prepend() passed!')
+
+
+        huk(e).i('test').html()
+
+        huk(e+' i')
+          .a('test')
+          .b('foo')
+        .after()
+
+        ok($e.html() == '<i>test</i><a>test</a><b>foo</b>', '.after() passed!')
+
+
+        huk(e).i('test').html()
+
+        huk(e+' i')
+          .a('test')
+          .b('foo')
+        .before()
+
+        ok($e.html() == '<a>test</a><b>foo</b><i>test</i>', '.before() passed!')
+      })
+
+      test('Base element tests', 4, function() {
+        var $e = $('#ins')
+          , e  = '#ins'
+
+        $e.html('')
+        huk(e).div('foo').html()
+        ok($e.html() == '<div>foo</div>', 'Single selector passed!')
+
+
+        huk(e+' div').b('bar').after()
+        ok($e.html() == '<div>foo</div><b>bar</b>', 'Multi selector passed!')
+
+
+        huk($e).div('foo').html()
+        ok($e.html() == '<div>foo</div>', 'Single element passed!')
+
+
+        huk($e).div('foo').append()
+        huk(e+' div').i(' bar').append()
+        ok($e.html() == '<div>foo<i> bar</i></div><div>foo<i> bar</i></div>', 'Multi element passed!')
+      })
+
+      test('Events', 4, function() {
+        var $e = $('#ins')
+          , e  = '#ins'
+        huk(e)
+          .a({
+            content: 'click'
+            , click: function(event) {
+              $('#ins').html('foo')
+            }
+          })
+        .html()
+        $(e+' a').trigger('click')
+        ok($e.html() == 'foo', 'Click passed!')
+
+
+        huk(e)
+          .a({
+            content: 'other'
+            , events: {
+              dbclick: function(event) {
+                $('#ins').html('bar')
+              }
+            }
+          })
+        .html()
+
+        $(e+' a').trigger('dbclick')
+        ok($e.html() == 'bar', 'Other events passed!')
+
+
+        huk(e)
+          .a({
+            complete: function() { $(this).html('foo') }
+          })
+        .html()
+        ok($e.html() == '<a>foo</a>', 'Complete events passed!')
+
+
+        huk(e)
+          .a({
+            content: 'click'
+            , data: { name: 'test' }
+            , click: function(event, data) {
+              $('#ins').html('foo'+data.name)
+            }
+          })
+        .html()
+        $(e+' a').trigger('click')
+        ok($e.html() == 'footest', 'Data option passed!')
+      })
+
+      test('.list() function', 5, function() {
+        var $e = $('#ins')
+
+        huk($e)
+          .list({
+            items: _.range(2)
+            , itemArgs: {
+              id: 'foo<<index>>'
+              , content: 'bar<<value>>'
+            }
+          })
+        .html()
+        ok($e.html() == '<ul><li id="foo0">bar0</li><li id="foo1">bar1</li></ul>', 'Range list with index, value')
+
+
+        var list = [
+          {
+            name: {
+              nick: 'huk'
+              , real: 'Chris Loranger'
+            }
+            , race: 'protoss'
+          }
+          , {
+            name: {
+              nick: 'mc'
+              , real: 'Min-Chui'
+            }
+            , race: 'protoss'
+          }
+        ]
+        huk($e)
+          .list({
+            items: list
+            , itemArgs: {
+              id: 'foo<<index>>'
+              , content: '<<value.name.real>> <<value.name.nick>> <<value.race>>'
+            }
+          })
+        .html()
+        ok($e.html() == '<ul><li id="foo0">Chris Loranger huk protoss</li><li id="foo1">Min-Chui mc protoss</li></ul>', 'List with object value')
+
+
+        huk($e)
+          .list({
+            items: list
+            , itemArgs: {
+              content: '<<value.name.nick>> <<value.race>>'
+              , click: function(event, data, index) {
+                $('#ins ul li').append('T')
+              }
+            }
+          })
+        .html()
+
+        $('#ins ul li').trigger('click')
+        ok($e.html() == '<ul><li>huk protossTT</li><li>mc protossTT</li></ul>', 'List with events')
+
+
+        huk($e)
+          .list({
+            items: list
+            , justItems: true
+            , itemArgs: {
+              content: '<<value.name.nick>> <<value.race>>'
+            }
+          })
+        .html()
+
+        $('#ins ul li').trigger('click')
+        ok($e.html() == '<li>huk protoss</li><li>mc protoss</li>', 'List without <ul>')
+
+
+        huk($e)
+          .list({
+            items: list
+            , itemTag: 'div'
+            , itemArgs: {
+              id: 'foo<<index>>'
+              , content: '<<value.name.nick>> <<value.race>>'
+            }
+          })
+        .html()
+        ok($e.html() == '<ul><div id="foo0">huk protoss</div><div id="foo1">mc protoss</div></ul>', 'itemTag passed!')
+      })
+    })
+
+
+    start()
+  </script>
+
+</body>
+<html>
