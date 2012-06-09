@@ -154,8 +154,16 @@
 			, iTag   = os.itemTag || 'li'
 			, jItems = os.justItems
 			, self   = this
+			, listFn = ['head', 'rest', 'initial', 'last']
+			, lFn    = []
 		;
 		if (_.isNumber(os.items)) os.items = _.range(os);
+
+		// Filter out the list functions
+		_.each(listFn, function(f) {
+			if (isElem(f, _.keys(os.itemArgs))) lFn.push({name: f, fn: os.itemArgs[f]});
+			delete os.itemArgs[f];
+		});
 
 		lis = os.items.map(function(item, index) {
 			var o = getItemArgs(os)
@@ -180,7 +188,6 @@
 				});
 			});
 
-
 			el.innerHTML = el.innerHTML.replace(/&lt;&lt;.[a-z,.,0-9,_,-]*&gt;&gt;/gi, function(e) {
 				e = e.substr(8, e.length-16);
 				if (_.first(e) == 'v'){
@@ -191,6 +198,20 @@
 
 			return el;
 		});
+
+		_.each(lFn, function(l) {
+			var is = _[l.name](lis)
+				, ds = _[l.name](os.items)
+			;
+
+			if (_.isElement(is)) l.fn.call(is, ds);
+			else if (_.isArray(is)) {
+				_.each(is, function(i, ix) {
+					l.fn.call(i, ds[ix]);
+				});
+			}
+		});
+
 
 		delete os.items;
 		delete os.itemArgs;
@@ -236,16 +257,20 @@
 		};
 	};
 
+	// Applying function to all of the HTML tags
 	_.each(HTMLElements.split(' '), function(e) {
 		Huk.addTag(e);
 	});
+
 
 	_.each(insertFn.split(' '), function(f) {
 		Huk.prototype[f] = function() {
 			var el = this.el;
 
+			// Insert the HTML in the page
 			$(el)[f](this.data);
 
+			// Fire the `complete` functions
 			_.each(this.completes, function(c) {
 				_.each(thd(c), function(e,i) {
 					var f = fst(c)[i];
