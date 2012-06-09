@@ -111,6 +111,7 @@ You can access the current value, index of the list and the path in the <i>this<
 	.text()
 ```
 
+
 You can make a list from tags other than `<li>`:
 
 ``` js
@@ -122,6 +123,34 @@ You can make a list from tags other than `<li>`:
 		})
 	.append()
 ```
+
+You can manipulate the list with a couple of functions: `head`, `last`, `rest`, `initial`.
+
+``` js
+	huk('body')
+		.list({
+			items: ['Group A', 'Stephano', 'HuK', 'Idra']
+			, justItems: true
+			, itemArgs: {
+				content: '<<value>>'
+				, head: function(elem) {
+					$(this).html(huk.b(elem))
+				}
+				, rest: function(elem) {
+					$(this).prepend('Name: ')
+				}
+			}
+		})
+	.html()
+```
+Which results:
+``` html
+	<li><b>Group A</b></li>
+	<li>Name: Stephano</li>
+	<li>Name: HuK</li>
+	<li>Name: Idra</li>
+```
+
 
 <h2>Nesting</h2>
 
