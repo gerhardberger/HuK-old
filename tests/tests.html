@@ -172,7 +172,7 @@
         ok($e.html() == 'footest', 'Data option passed!')
       })
 
-      test('.list() function', 5, function() {
+      test('.list() function', 9, function() {
         var $e = $('#ins')
 
         huk($e)
@@ -256,9 +256,72 @@
           })
         .html()
         ok($e.html() == '<ul><div id="foo0">huk protoss</div><div id="foo1">mc protoss</div></ul>', 'itemTag passed!')
+
+
+        huk($e)
+          .list({
+            items: list
+            , itemTag: 'div'
+            , itemArgs: {
+              id: 'foo<<index>>'
+              , content: '<<value.name.nick>> <<value.race>>'
+              , head: function(data) {
+                $(this).html(huk.b(data.name.nick))
+              }
+            }
+          })
+        .html()
+        ok($e.html() == '<ul><div id="foo0"><b>huk</b></div><div id="foo1">mc protoss</div></ul>', 'head passed!')
+
+
+        huk($e)
+          .list({
+            items: list
+            , itemTag: 'div'
+            , itemArgs: {
+              id: 'foo<<index>>'
+              , content: '<<value.name.nick>> <<value.race>>'
+              , last: function(data) {
+                $(this).html(huk.b(data.name.nick))
+              }
+            }
+          })
+        .html()
+        ok($e.html() == '<ul><div id="foo0">huk protoss</div><div id="foo1"><b>mc</b></div></ul>', 'last passed!')
+
+
+        huk($e)
+          .list({
+            items: list
+            , itemTag: 'div'
+            , itemArgs: {
+              id: 'foo<<index>>'
+              , content: '<<value.name.nick>> <<value.race>>'
+              , rest: function(data) {
+                $(this).html(huk.b(data.name.nick))
+              }
+            }
+          })
+        .html()
+        ok($e.html() == '<ul><div id="foo0">huk protoss</div><div id="foo1"><b>mc</b></div></ul>', 'rest passed!')        
+
+
+        huk($e)
+          .list({
+            items: list
+            , itemTag: 'div'
+            , itemArgs: {
+              id: 'foo<<index>>'
+              , content: '<<value.name.nick>> <<value.race>>'
+              , initial: function(data) {
+                $(this).html(huk.b(data.name.nick))
+              }
+            }
+          })
+        .html()
+        ok($e.html() == '<ul><div id="foo0"><b>huk</b></div><div id="foo1">mc protoss</div></ul>', 'initial passed!')
       })
     })
-
 
     start()
   </script>
