@@ -121,7 +121,19 @@
         ok($e.html() == '<div>foo<i> bar</i></div><div>foo<i> bar</i></div>', 'Multi element passed!')
       })
 
-      test('Events', 4, function() {
+      test('Parameter options', 4, function() {
+        var $e = $('#ins')
+        
+        ok(huk.div('foo').outerHTML == '<div>foo</div>', 'Only string!')
+
+        ok(huk.div(huk.a('foo')).outerHTML == '<div><a>foo</a></div>', 'Single element!')
+
+        ok(huk.div(huk().a('foo').b('bar').val()).outerHTML == '<div><a>foo</a><b>bar</b></div>', 'Chained elements!')
+
+        ok(huk.div([huk.a('foo'), huk.b('bar'), 'baz']).outerHTML == '<div><a>foo</a><b>bar</b>baz</div>', 'Array elements!')
+      })
+
+      test('Events', 3, function() {
         var $e = $('#ins')
           , e  = '#ins'
         huk(e)
@@ -149,14 +161,6 @@
 
         $(e+' a').trigger('dbclick')
         ok($e.html() == 'bar', 'Other events passed!')
-
-
-        huk(e)
-          .a({
-            complete: function() { $(this).html('foo') }
-          })
-        .html()
-        ok($e.html() == '<a>foo</a>', 'Complete events passed!')
 
 
         huk(e)
@@ -320,6 +324,93 @@
           })
         .html()
         ok($e.html() == '<ul><div id="foo0"><b>huk</b></div><div id="foo1">mc protoss</div></ul>', 'initial passed!')
+      })
+
+      test('complete', 2, function() {
+        var $e = $('#ins')
+
+        huk($e)
+          .div({
+            content: 'bar'
+            , data: 'foo'
+            , complete: function(data) {
+              $(this).html(data)
+            }
+          })
+        .html()
+        ok($e.html() == '<div>foo</div>', 'simple complete passed!')
+
+        huk($e)
+          .list({
+            items: ['foo', 'bar']
+            , justItems: true
+            , itemArgs: {
+              content: 'test'
+              , complete: function(data, ix) {
+                $(this).html(ix + data)
+              }
+            }
+          })
+        .html()
+        ok($e.html() == '<li>0foo</li><li>1bar</li>', 'listed complete passed!')
+      })
+
+
+      test('bundle', 3, function() {
+        var $e = $('#ins')
+          , data = {
+            name: 'test'
+            , age: '10'
+            , adress: 'home'
+          }
+
+        huk.bundle('profile', function(data) {
+          return huk.div({
+            content: huk()
+              .strong(data.name)
+              .i(data.age)
+              .adress(data.adress)
+            .val()
+          })
+        })
+
+        ok(huk.profile(data).outerHTML == '<div><strong>test</strong><i>10</i><adress>home</adress></div>', 'simple bundle')
+
+        huk($e).profile(data).html()
+        ok($e.html() == '<div><strong>test</strong><i>10</i><adress>home</adress></div>', 'chained bundle')
+
+
+        huk.bundle('student', function(data) {
+          return huk.div({
+            content: huk()
+              .b(data.name)
+              .i({
+                content: data.age
+                , click: function() {
+                  console.log('iii')
+                }
+              })
+            .val()
+          })
+        })
+        var students = [
+          {
+            name: 'foo'
+            , age: '10'
+          }
+          , {
+            name: 'bar'
+            , age: '20'
+          }
+          , {
+            name: 'baz'
+            , age: '30'
+          }
+        ]
+        huk($e).student(students, 'button').html()
+        ok($e.html() == '<button><div><b>foo</b><i>10</i></div></button>'+
+                        '<button><div><b>bar</b><i>20</i></div></button>'+
+                        '<button><div><b>baz</b><i>30</i></div></button>', 'list bundle')
       })
     })
 

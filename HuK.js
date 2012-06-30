@@ -6,16 +6,16 @@
 
 	'use strict';
 
-	var HTMLElements = 'a area article adress abbr audio b button base bdi bdo center blockquote cite col'  +
+	var HTMLElements = 'a area article adress abbr audio b button base bdi bdo browser center blockquote cite col'  +
 										 ' colgroup command datalist details dl figure footer header hgroup map keygen kbd'   +
 										 ' mark meter nav noscript object param output progress rp rt ruby section source sub'+
 										 ' summary time tfoot sup track video wbr figcaption caption canvas code div dt dd'   +
 										 ' em fieldset font form h1 h2 h3 h4 h5 h6 i iframe img input label li menu meta ol p'+
-										 ' pre script select span strong style table tbody td tr textarea ul hr'
+										 ' pre script select span small strong style table tbody td tr textarea ul hr'
 		, tagWithSrc   = 'img iframe audio video'
 		, insertFn     = 'append after before html text prepend'
 		, mainEvents   = 'click hover'
-		, $            = jQuery || ender
+		, $            = jQuery
 	;
 
 	function isElem(k,a) {var i=0; while ((i<a.length) && (a[i] != k))	i++; return i < a.length; }
@@ -30,6 +30,13 @@
 		return [a,b];
 	}
 
+	function traverse(tree, f) {
+		f.call(tree, tree);
+
+		_.each(tree.childNodes, function(branch) {
+			traverse(branch, f);
+		});
+	}
 
 
 	// Local functions
@@ -69,7 +76,7 @@
 		else if (_.isArray(cs))
 			_.each(cs, function(c) { appendContent(el, c); });
 		else if (_.isElement(cs))
-			el.appendChild(cs.cloneNode(true));
+			el.appendChild(_.first($(cs).clone(true)));
 
 		return el;
 	}
@@ -79,8 +86,11 @@
 			, content
 			, events
 			, css
+			, comp
 		;
 
+		if (_.isUndefined(os)) os = {}
+		if (_.isElement(os) || _.isArray(os)) os = {content: os}
 		if (_.isString(os))	os = isElem(n, tagWithSrc.split(' ')) ? {src: os} : {content: os};
 
 		// Handle events
@@ -96,6 +106,10 @@
 		content = os.content || '';
 		delete os.content;
 
+		// Get complete
+		comp = os.complete;
+		delete os.complete;
+
 		// Append the content
 		if (content) el = appendContent(el, content,ix);
 
@@ -104,32 +118,21 @@
 			if (k != 'data') el.setAttribute(k,o);
 		});
 
+		// Fire `complete` if existing
+		if (comp) comp.call(el, os.data, ix);
+
 		return el;
 	}
 
 	function createEl(n, os, that) {
-		var comp = []
-			, el   = []
+		var el   = []
 		;
 
-		if (_.isUndefined(os)) os = {};
-
-		if (_.isArray(os)) {
+		if (_.isArray(os))
 			_.each(os, function(o) {
-				comp.push(o.complete);
-				delete o.complete;
 				el.push(createEl_(n, o));
 			});
-		}
-		else {
-			if (_.isFunction(os.complete)) {
-				comp.push(os.complete);
-				delete os.complete;
-			}
-			el.push(createEl_(n, os));
-		}
-
-		if (!_.isEmpty(comp)) that.completes.push([comp, os.data, el]);
+		else el.push(createEl_(n, os || {}));
 
 		that.data = that.data.concat(el);
 	}
@@ -148,7 +151,7 @@
 		return getValue(_.rest(vs), i[_.first(vs)]);
 	}
 
-	function  listFn(os) {
+	function  listFn(os, con) {
 		var lis
 			, ul
 			, iTag   = os.itemTag || 'li'
@@ -177,23 +180,25 @@
 			o.data = item;
 			
 			el = createEl_(iTag, o, index);
-
-			_.each(el.attributes, function(attr) {
-				attr.value = attr.value.replace(/<<.[a-z,.,0-9,_,-]*>>/gi, function(e) {
-					e = e.substr(2, e.length-4);
-					if (_.first(e) == 'v') {
-						return getValue(e.split('.'), insert);
-					}
-					else return insert[e];
-				});
-			});
-
-			el.innerHTML = el.innerHTML.replace(/&lt;&lt;.[a-z,.,0-9,_,-]*&gt;&gt;/gi, function(e) {
-				e = e.substr(8, e.length-16);
-				if (_.first(e) == 'v'){
-					return getValue(e.split('.'), insert);
+			traverse(el, function(element) {
+				_.each(element.attributes, function(attr) {
+					attr.value = attr.value.replace(/<<.[a-z,.,0-9,_,-,:,$]*>>/gi, function(e) {
+						e = e.substr(2, e.length-4);
+						if (_.first(e) == 'v') {
+							return getValue(e.split('.'), insert);
+						}
+						else return insert[e];
+					});
+				});	
+				if (element instanceof Text) {
+					element.nodeValue = element.nodeValue.replace(/<<.[a-z,.,0-9,_,-,:,$]*>>/gi, function(e) {
+						e = e.substr(2, e.length-4);
+						if (_.first(e) == 'v'){
+							return getValue(e.split('.'), insert);
+						}
+						else return insert[e];
+					});
 				}
-				else return insert[e];
 			});
 
 			return el;
@@ -219,12 +224,24 @@
 		delete os.content;
 		delete os.justItems;
 
-		if (jItems) self.data = self.data.concat(lis);
+		if (con) {
+			if (jItems) return lis.map(function(li) {	return _.first($(li).clone(true));
+			});
+			ul = createEl_('ul', os);
+
+			_.each(lis, function(li) {
+				ul.appendChild(_.first($(li).clone(true)));
+			});
+
+			return ul;
+		}
+
+		if (jItems) self.data = self.data.concat(lis.map(function(li) { return _.first($(li).clone(true)); }));
 		else {
 			ul = createEl_('ul', os);
 
 			_.each(lis, function(li) {
-				ul.appendChild(li);
+				ul.appendChild(_.first($(li).clone(true)));
 			});
 
 			self.data.push(ul);
@@ -241,13 +258,14 @@
 	function Huk(selector) {
 		this.el        = $(selector);
 		this.data      = [];
-		this.completes = [];
 	}
 
 	
 
 	Huk.prototype.list = listFn;
-	Huk.constructor.prototype.list = listFn;
+	Huk.constructor.prototype.list = function(os) {
+		return listFn.call(Huk, os, true);
+	};
 
 	Huk.constructor.prototype.addTag = function(n) {
 		Huk.prototype[n] = function(os) { createEl(n, os, this); return this; };
@@ -269,17 +287,43 @@
 
 			// Insert the HTML in the page
 			$(el)[f](this.data);
-
-			// Fire the `complete` functions
-			_.each(this.completes, function(c) {
-				_.each(thd(c), function(e,i) {
-					var f = fst(c)[i];
-					if (!_.isUndefined(f))f.call(e, snd(c));
-				});
-			});
 		};
 	});
+
 	Huk.prototype.val = function() { return this.data; };
+
+	Huk.constructor.prototype.bundle = function(name, bundle) {
+		Huk.constructor.prototype[name] = function(data, isList) {
+			return (isList) ?
+				huk.list({
+					items: data
+					, justItems: true
+					, itemTag: _.isString(isList) ? isList : 'li'
+					, itemArgs: {
+						complete: function(data_) {
+							$(this).html(bundle.call(Huk, data_))
+						}
+					}
+				}) :
+				bundle.call(Huk, data);
+		};
+
+		Huk.prototype[name] = function(data, isList) {
+			this.data = this.data.concat((isList) ?
+				huk.list({
+					items: data
+					, justItems: true
+					, itemTag: _.isString(isList) ? isList : 'li'
+					, itemArgs: {
+						complete: function(data_) {
+							$(this).html(bundle.call(Huk, data_))
+						}
+					}
+				}) : bundle.call(this, data));
+
+			return this;
+		};
+	};
 
 	function huk(selector) {
 		return new Huk(selector);

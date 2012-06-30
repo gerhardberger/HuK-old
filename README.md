@@ -1,6 +1,6 @@
 <h1>HuK</h1>
 
-huk.js is a library for generating HTML code written in JavaScript. It is an [Ender.js](https://github.com/ded/Ender.js) module and it uses some basic modules ([bonzo](https://github.com/ded/bonzo), [bean](https://github.com/fat/bean)). Or you can simply use it with [jQuery](https://github.com/jquery/jquery).
+huk.js is a library for generating HTML code written in JavaScript. It is using some basic [jQuery](https://github.com/jquery/jquery) stuff.
 
 <h2>Example</h2>
 
@@ -10,7 +10,7 @@ huk('.foo')
 	.div({
 		id: 'bar'
 		, class: 'klass'
-		, content: 'Text'
+		, content: huk.strong('Text')
 	})
 	.textarea()
 	.img('src/img/foo.jpg')
@@ -31,10 +31,11 @@ It (hopefully) supports all the existing HTML elements. That means, to create a 
 
 * `.div()` - `<div></div>`
 * `.div(String)` - `<div>String</div>`
+* `.div(DOMElement)` - `<div>DOMElement</div>`
 * `.div({id: 'foo', class: 'bar', content: 'Content'})` - `<div id="foo" class="bar">Content</div>`
 * `.img(Url)` - `<img src="Url" />`
 
-<h3>.addTag</h3>
+<h3>.addTag(name)</h3>
 
 You can add new HTML tags:
 
@@ -44,7 +45,7 @@ You can add new HTML tags:
 
 <h2>Events</h2>
 
-The events in [bean](https://github.com/fat/bean) can be written here too.
+The events in [jQuery](https://github.com/jquery/jquery) can be written here too.
 
 ``` js
 	huk('.foo')
@@ -83,7 +84,7 @@ If you want to access some data in the event function, you can pass it in the `d
 ```
 
 
-<h2>.list()</h2>
+<h2>.list(options)</h2>
 
 This function creates an HTML list (`<ul><li></li>...</ul>`) and you can use an array and it creates a list. If you want to refer to the value to the array put there `'<<value>>'` in the string (or `'<<value.foo.bar>>'` if it is an object). You can refer to the current index with `'<<index>>'`.
 
@@ -154,6 +155,8 @@ Which results:
 
 <h2>Nesting</h2>
 
+The single and chained nesting options both just return normal DOM nodes, so you can use them elsewhere in your program, or you can nest elements not created with these functions.
+
 <h4>Single element</h4>
 
 ``` js
@@ -195,22 +198,79 @@ If you nest multiple elements, you have to call the `.val()` function at the end
 ```
 
 
-<h2>Using Ender</h2>
+<h2>.bundle(name, fn)</h2>
 
-You can use huk.js as an ender module:
+You can create bundles and name them, thus your code will be simpler and easier to read. This way you can focus in your code to the part which matters. You can re-use this way a bundle of HTML much more easily.
 
-```
-	ender build HuK
-```
+<h4>Create bundle</h4>
 
-And write the code like so:
+In the `.bundle()` function the firts parameter is the name of the bundle. The second is a function, which has to return some kind of DOM element.
 
 ``` js
-	$.huk('.foo')
-		.list({
-			items: list
-			, content: $.huk.a('Test')
+	huk.bundle('tweet', function(data) {
+		var name = '@' + data.author
+			, text = data.tweetText
+			, date = data.date
+
+		return huk.div({
+			class: 'tweet'
+			, content: huk()
+				.strong(name)
+				.p(text)
+				.small(date)
+			.val()
 		})
-		.span('Text')
-	.append()
+	})
+```
+
+<h4>Call a bundle</h4>
+
+When you created a bundle, you can use it just as a normal HTML tag in `huk`. You can pass in two parameters, the first is something you want to use in the bundle's function, the second is either a Boolean or a String. If it is a Boolean and `True`, then it assumes, that the first parameter is an array and it is going to call the bundle function for each of the element in the array (this way easier to handle a list). If it is a String, then it does the same thing, but the elements of the list will not be `li`s but the passed in String.
+
+``` js
+	huk('.foo')
+		.tweet({author: 'Horse_ebooks', tweetText: 'Roses Perfectly', date: '10:33 AM - 29 Jun 12'})
+	.html()
+```
+
+Result: 
+
+``` html
+	<div class="tweet">
+		<strong>@Horse_ebooks</strong>
+		<p>Roses Perfectly</p>
+		<small>10:33 AM - 29 Jun 12</small>
+	</div>
+```
+
+<h4>Bundles on lists</h4>
+
+``` js
+	huk.bundle('profile', function(data) {
+		return huk()
+			.strong(data.name)
+			.i(data.age)
+		.val()
+	})
+
+	var arr = [{name: 'Anthony', age: 49}, {name 'Flea', age: 49}, {name: 'Chad', age: 50}]
+
+	huk('.bar').profile(arr, 'div').append()
+```
+
+Result:
+
+``` html
+	<div>
+		<strong>Anthony</strong>
+		<i>49</i>
+	</div>
+	<div>
+		<strong>Flea</strong>
+		<i>49</i>
+	</div>
+	<div>
+		<strong>Chad</strong>
+		<i>50</i>
+	</div>
 ```
