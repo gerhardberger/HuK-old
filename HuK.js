@@ -163,10 +163,11 @@
 		if (_.isNumber(os.items)) os.items = _.range(os);
 
 		// Filter out the list functions
-		_.each(listFn, function(f) {
-			if (isElem(f, _.keys(os.itemArgs))) lFn.push({name: f, fn: os.itemArgs[f]});
-			delete os.itemArgs[f];
-		});
+		if (os.itemArgs)
+			_.each(listFn, function(f) {
+				if (isElem(f, _.keys(os.itemArgs))) lFn.push({name: f, fn: os.itemArgs[f]});
+				delete os.itemArgs[f];
+			});
 
 		lis = os.items.map(function(item, index) {
 			var o = getItemArgs(os)
@@ -212,7 +213,7 @@
 			if (_.isElement(is)) l.fn.call(is, ds);
 			else if (_.isArray(is)) {
 				_.each(is, function(i, ix) {
-					l.fn.call(i, ds[ix]);
+					l.fn.call(i, ds[ix], ix);
 				});
 			}
 		});
@@ -300,8 +301,8 @@
 					, justItems: true
 					, itemTag: _.isString(isList) ? isList : 'li'
 					, itemArgs: {
-						complete: function(data_) {
-							$(this).html(bundle.call(Huk, data_))
+						complete: function(data_, ix) {
+							$(this).html(bundle.call(Huk, data_, ix))
 						}
 					}
 				}) :
@@ -315,8 +316,8 @@
 					, justItems: true
 					, itemTag: _.isString(isList) ? isList : 'li'
 					, itemArgs: {
-						complete: function(data_) {
-							$(this).html(bundle.call(Huk, data_))
+						complete: function(data_, ix) {
+							$(this).html(bundle.call(Huk, data_, ix))
 						}
 					}
 				}) : bundle.call(this, data));
