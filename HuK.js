@@ -190,7 +190,7 @@
 						}
 						else return insert[e];
 					});
-				});	
+				});
 				if (element instanceof Text) {
 					element.nodeValue = element.nodeValue.replace(/<<.[a-z,.,0-9,_,-,:,$]*>>/gi, function(e) {
 						e = e.substr(2, e.length-4);
@@ -257,8 +257,9 @@
 	// Prototype functions
 
 	function Huk(selector) {
-		this.el        = $(selector);
-		this.data      = [];
+		this.el   = $(selector);
+		this.data = [];
+		this.load = [];
 	}
 
 	
@@ -288,12 +289,16 @@
 
 			// Insert the HTML in the page
 			$(el)[f](this.data);
+
+			_.each(this.load, function(o) {
+				o.load.call(o.element, o.data);
+			});
 		};
 	});
 
 	Huk.prototype.val = function() { return this.data; };
 
-	Huk.constructor.prototype.bundle = function(name, bundle) {
+	Huk.constructor.prototype.bundle = function(name, bundle, load) {
 		Huk.constructor.prototype[name] = function(data, isList) {
 			return (isList) ?
 				huk.list({
@@ -310,7 +315,7 @@
 		};
 
 		Huk.prototype[name] = function(data, isList) {
-			this.data = this.data.concat((isList) ?
+			var e = (isList) ?
 				huk.list({
 					items: data
 					, justItems: true
@@ -320,8 +325,9 @@
 							$(this).html(bundle.call(Huk, data_, ix))
 						}
 					}
-				}) : bundle.call(this, data));
-
+				}) : bundle.call(this, data);
+			this.data = this.data.concat(e);
+			if (load) this.load.push({element: e, load: load, data: data});
 			return this;
 		};
 	};

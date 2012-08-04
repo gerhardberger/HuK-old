@@ -198,7 +198,7 @@ If you nest multiple elements, you have to call the `.val()` function at the end
 ```
 
 
-<h2>.bundle(name, fn)</h2>
+<h2>.bundle(name, fn, load)</h2>
 
 You can create bundles and name them, thus your code will be simpler and easier to read. This way you can focus in your code to the part which matters. You can re-use this way a bundle of HTML much more easily.
 
@@ -273,4 +273,17 @@ Result:
 		<strong>Chad</strong>
 		<i>50</i>
 	</div>
+```
+
+<h4>Load function (*optional*)</h4>
+
+You can manipulate the created bundle element, in the `bundle` function third argument.
+The element in the `this` variable.
+
+Example:
+
+``` js
+	huk.bundle('profile', profileBundleFn(data), function(data) {
+		$(this).addClass(data.name)
+	})
 ```
