@@ -275,7 +275,7 @@ Result:
 	</div>
 ```
 
-<h4>Load function (*optional*)</h4>
+<h4>Load function (optional)</h4>
 
 You can manipulate the created bundle element, in the `bundle` function third argument.
 The element in the `this` variable.
