@@ -1,3 +1,4 @@
+[![build status](https://secure.travis-ci.org/gerhardberger/HuK.png)](http://travis-ci.org/gerhardberger/HuK)
 <h1>HuK</h1>
 
 huk.js is a library for generating HTML code written in JavaScript. It is using some basic [jQuery](https://github.com/jquery/jquery) stuff.
