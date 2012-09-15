@@ -298,35 +298,38 @@
 
 	Huk.prototype.val = function() { return this.data; };
 
-	Huk.constructor.prototype.bundle = function(name, bundle, load) {
-		Huk.constructor.prototype[name] = function(data, isList) {
-			return (isList) ?
-				huk.list({
-					items: data
-					, justItems: true
-					, itemTag: _.isString(isList) ? isList : 'li'
-					, itemArgs: {
-						complete: function(data_, ix) {
-							$(this).html(bundle.call(Huk, data_, ix))
-						}
-					}
-				}) :
-				bundle.call(Huk, data);
-		};
-
-		Huk.prototype[name] = function(data, isList) {
+	Huk.constructor.prototype.bundle = function (name, bundle, load) {
+		Huk.constructor.prototype[name] = function (data, isList, wrapper) {
 			var e = (isList) ?
 				huk.list({
 					items: data
 					, justItems: true
 					, itemTag: _.isString(isList) ? isList : 'li'
 					, itemArgs: {
-						complete: function(data_, ix) {
-							$(this).html(bundle.call(Huk, data_, ix))
+						complete: function (data_, ix) {
+							$(this).html(bundle.call(this, data_, ix));
+						}
+					}
+				}) :
+				bundle.call(Huk, data);
+
+			return wrapper ? $(wrapper).html(e) : e;
+		};
+
+		Huk.prototype[name] = function (data, isList, wrapper) {
+			var e = (isList) ?
+				huk.list({
+					items: data
+					, justItems: true
+					, itemTag: _.isString(isList) ? isList : 'li'
+					, itemArgs: {
+						complete: function (data_, ix) {
+							$(this).html(bundle.call(this, data_, ix));
 						}
 					}
 				}) : bundle.call(this, data);
-			this.data = this.data.concat(e);
+
+			this.data = this.data.concat(wrapper ? $(wrapper).html(e) : e);
 			if (load) this.load.push({element: e, load: load, data: data});
 			return this;
 		};
